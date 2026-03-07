@@ -18,6 +18,8 @@ const database = firebase.database();
 // Pergunta o nome e define se é Admin
 let usuarioAtual = prompt("Qual é o seu nome?");
 if (!usuarioAtual || usuarioAtual.trim() === "") usuarioAtual = "Anônimo";
+
+// Se entrar com este nome exato, vira Admin e pode apagar qualquer mensagem
 const SOU_ADMIN = (usuarioAtual === "Admin-Hells~");
 
 // Seleciona os elementos da tela
@@ -40,10 +42,9 @@ function sendMessage() {
             time: horaFormatada,
             timestamp: Date.now()
         }).then(() => {
-            messageInput.value = ""; // Limpa o campo após sucesso
+            messageInput.value = ""; 
         }).catch((error) => {
             console.error("Erro ao enviar:", error);
-            alert("Erro ao enviar mensagem!");
         });
     }
 }
@@ -77,22 +78,8 @@ database.ref('messages').on('child_added', (snapshot) => {
     messageElement.id = id;
     messageElement.classList.add('message', souEu ? "minha-msg" : "outra-msg");
 
-    // Lógica do botão apagar
+    // Lógica do botão apagar (Aparece para o dono da msg ou para o Admin)
     const podeApagar = souEu || SOU_ADMIN;
     const botaoApagar = podeApagar ? `<span class="delete-btn" onclick="removerMensagem('${id}')">🗑️</span>` : "";
 
-    messageElement.innerHTML = `
-        <span class="user-name">${data.username} ${botaoApagar}</span>
-        <p class="text-msg">${data.text}</p>
-        <span class="time-msg">${data.time || '--:--'}</span>
-    `;
-    
-    chatWindow.appendChild(messageElement);
-    chatWindow.scrollTop = chatWindow.scrollHeight;
-});
-
-// Remove da tela se alguém apagar no banco
-database.ref('messages').on('child_removed', (snapshot) => {
-    const msgParaRemover = document.getElementById(snapshot.key);
-    if (msgParaRemover) msgParaRemover.remove();
-});
+    // --- LÓGICA DE FIGURINHAS/
