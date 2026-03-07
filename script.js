@@ -42,7 +42,7 @@ async function buscarGifs(termo = '') {
     if (!lista) return;
 
     // COLOQUE SUA CHAVE NOVA AQUI DENTRO DAS ASPAS
-    const apiKey = 'SUA_NOVA_CHAVE_AQUI'; 
+    const apiKey = 'Yul3vV8u0jSzwIQSNjVNsu5weoTaAhPB'; 
     const endpoint = termo ? 'search' : 'trending';
     const url = `https://api.giphy.com/v1/gifs/${endpoint}?api_key=${apiKey}&q=${termo}&limit=12&rating=g`;
 
