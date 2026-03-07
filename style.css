@@ -13,4 +13,22 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-
 
 .input-area { display: flex; gap: 8px; background: #202c33; padding: 10px; border-radius: 8px; }
 input { flex: 1; border: none; background: transparent; color: white; outline: none; }
-button { background: transparent; border: none; color: #00a884; font-size: 1.2rem; cursor: pointer; }
+button { background: transparent; border: none; color: #00a884; font-size: 1.2rem; cursor: pointer; }.delete-btn {
+    margin-left: 10px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    opacity: 0.6;
+    transition: 0.3s;
+}
+
+.delete-btn:hover {
+    opacity: 1;
+    color: #ff4d4d;
+}
+
+/* Garante que o nome e a lixeira fiquem na mesma linha */
+.user-name {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
