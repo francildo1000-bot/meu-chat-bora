@@ -141,11 +141,28 @@ header {
 }
 /* Garante que o lugar dos GIFs apareça com 3 colunas */
 #gif-list {
-    display: grid !important; /* Força a exibição em grade */
+    display: grid !important;
     grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-    max-height: 250px;
+    gap: 10px;
+    max-height: 250px; /* Altura máxima com scroll */
+    min-height: 150px; /* Garante que o espaço apareça mesmo vazio */
     overflow-y: auto;
     margin-top: 10px;
-    padding-bottom: 5px;
+    padding: 5px;
+    background: #111b21; /* Um fundo levemente mais escuro para destacar */
+    border-radius: 8px;
+}
+
+#gif-list img {
+    width: 100%;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+#gif-list img:hover {
+    opacity: 0.8;
+    transform: scale(1.05);
 }
