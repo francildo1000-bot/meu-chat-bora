@@ -41,35 +41,21 @@ async function buscarGifs(termo = '') {
     const lista = document.getElementById('gif-list');
     if (!lista) return;
 
-    // Usando uma chave de demonstração alternativa
-    const apiKey = 'Yul3vV8u0jSzwIQSNjVNsu5weoTaAhPB'; // Se esta não funcionar, tente 'dc6zaTOxFJmzC' novamente
+    // COLOQUE SUA CHAVE NOVA AQUI DENTRO DAS ASPAS
+    const apiKey = 'SUA_NOVA_CHAVE_AQUI'; 
     const endpoint = termo ? 'search' : 'trending';
-    
-    // Mudamos um pouco a estrutura da URL para garantir compatibilidade
-    const url = `https://api.giphy.com/v1/gifs/${endpoint}?api_key=dc6zaTOxFJmzC&q=${termo}&limit=12&rating=g`;
+    const url = `https://api.giphy.com/v1/gifs/${endpoint}?api_key=${apiKey}&q=${termo}&limit=12&rating=g`;
 
     try {
-        lista.innerHTML = "<p style='color:gray; font-size:12px; padding:10px;'>Buscando...</p>";
-        
         const response = await fetch(url);
-        const { data } = await response.json();
+        if (!response.ok) throw new Error('Erro na API'); // Pega o erro 403 se a chave estiver ruim
         
+        const { data } = await response.json();
         lista.innerHTML = ""; 
-
-        if (!data || data.length === 0) {
-            lista.innerHTML = "<p style='color:gray; font-size:12px; padding:10px;'>Nenhum GIF encontrado para '" + termo + "'.</p>";
-            return;
-        }
 
         data.forEach(gif => {
             const img = document.createElement('img');
             img.src = gif.images.fixed_height_small.url;
-            img.style.width = "100%";
-            img.style.height = "100px";
-            img.style.objectFit = "cover";
-            img.style.borderRadius = "5px";
-            img.style.cursor = "pointer";
-            
             img.onclick = () => {
                 enviarMensagem(gif.images.original.url);
                 document.getElementById('gif-modal').style.display = 'none';
@@ -77,8 +63,8 @@ async function buscarGifs(termo = '') {
             lista.appendChild(img);
         });
     } catch (e) { 
-        console.error("Erro:", e);
-        lista.innerHTML = "<p style='color:red;'>Erro de conexão.</p>";
+        console.error("Erro na busca:", e);
+        lista.innerHTML = "<p style='color:red; font-size:12px;'>Erro ao carregar. Verifique sua chave API.</p>";
     }
 }
 
