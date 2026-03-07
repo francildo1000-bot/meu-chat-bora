@@ -102,7 +102,8 @@ database.ref('messages').on('child_added', (snapshot) => {
     const ehGif = data.text.includes('giphy.com') || data.text.match(/\.(gif|jpg|png)$/);
     const conteudo = ehGif ? `<img src="${data.text}" style="max-width:200px; border-radius:10px;">` : `<p>${data.text}</p>`;
 
-    msgDiv.innerHTML = `<span class="user-name">${data.username}</span>${conteudo}<span class="time-msg">${data.time}</span>`;
-    chatWindow.appendChild(msgDiv);
-    chatWindow.scrollTop = chatWindow.scrollHeight;
-});
+    msgDiv.innerHTML = `
+    <span class="user-name">${data.username}</span>
+    ${conteudo}
+    <span class="time-msg">${horario}</span>
+`;
