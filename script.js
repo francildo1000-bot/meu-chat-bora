@@ -38,21 +38,29 @@ function sendMessage() {
 sendBtn.onclick = sendMessage;
 messageInput.onkeypress = (e) => { if (e.key === 'Enter') sendMessage(); };
 
-// ESSA PARTE FAZ APARECER NA TELA
 database.ref('messages').on('child_added', (snapshot) => {
     const data = snapshot.val();
     const id = snapshot.key;
     const souEu = data.username === usuarioAtual;
     
-    // Tocar som se não for meu
     if (!souEu && som) som.play().catch(() => {});
 
     const msgDiv = document.createElement('div');
     msgDiv.id = id;
     msgDiv.classList.add('message', souEu ? 'minha-msg' : 'outra-msg');
 
-    const ehImagem = data.text.match(/\.(jpeg|jpg|gif|png|webp)$/i) != null;
-    const conteudo = ehImagem ? `<img src="${data.text}" style="max-width:180px; border-radius:8px; display:block; margin-top:5px;">` : `<p class="text-msg">${data.text}</p>`;
+    // MELHORIA AQUI: Detecta imagens mesmo com links longos ou Giphy
+    const textoMensagem = data.text.toLowerCase();
+    const ehImagem = textoMensagem.includes('.jpg') || 
+                     textoMensagem.includes('.jpeg') || 
+                     textoMensagem.includes('.gif') || 
+                     textoMensagem.includes('.png') || 
+                     textoMensagem.includes('.webp');
+
+    const conteudo = ehImagem ? 
+        `<img src="${data.text}" style="max-width:180px; border-radius:8px; display:block; margin-top:5px;" onerror="this.outerHTML='<p class=text-msg>${data.text}</p>'">` : 
+        `<p class="text-msg">${data.text}</p>`;
+
     const btnApagar = (souEu || SOU_ADMIN) ? `<span class="delete-btn" onclick="removerMensagem('${id}')">🗑️</span>` : "";
 
     msgDiv.innerHTML = `
