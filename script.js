@@ -98,23 +98,32 @@ if (sendBtn) {
 // 6. Exibir Mensagens em Tempo Real
 database.ref('messages').on('child_added', (snapshot) => {
     const data = snapshot.val();
+    const messageId = snapshot.key; // Pega o ID único da mensagem
     if (!chatWindow) return;
 
     const msgDiv = document.createElement('div');
     const souEu = data.username === usuarioAtual;
     msgDiv.className = `message ${souEu ? 'minha-msg' : 'outra-msg'}`;
+    msgDiv.id = `msg-${messageId}`; // Define o ID na lixeira
 
     const ehGif = data.text.includes('giphy.com');
     const conteudo = ehGif ? `<img src="${data.text}" style="max-width:200px; border-radius:10px;">` : `<p>${data.text}</p>`;
 
+    // Só adiciona o botão de apagar se a mensagem for do usuário atual
+    const botaoApagar = souEu ? `<button class="delete-btn" onclick="apagarMinhaMensagem('${messageId}')">🗑️</button>` : "";
+
     msgDiv.innerHTML = `
         <span class="user-name">${data.username}</span>
         ${conteudo}
-        <span class="time-msg">${data.time || 'Agora'}</span>
+        <div class="footer-msg">
+            <span class="time-msg">${data.time || 'Agora'}</span>
+            ${botaoApagar}
+        </div>
     `;
     
     chatWindow.appendChild(msgDiv);
     chatWindow.scrollTop = chatWindow.scrollHeight;
+    
 });
 const clearBtn = document.getElementById('clear-chat-btn');
 
@@ -132,3 +141,17 @@ if (clearBtn) {
         }
     };
 }
+window.apagarMinhaMensagem = (id) => {
+    if (confirm("Deseja apagar sua mensagem?")) {
+        database.ref('messages/' + id).remove();
+        // Remove visualmente da tela na hora
+        const elemento = document.getElementById(`msg-${id}`);
+        if (elemento) elemento.remove();
+    }
+};
+
+// Adicione isso para que, se outro usuário apagar, suma da sua tela também
+database.ref('messages').on('child_removed', (snapshot) => {
+    const elemento = document.getElementById(`msg-${snapshot.key}`);
+    if (elemento) elemento.remove();
+});
