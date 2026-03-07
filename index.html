@@ -6,18 +6,20 @@
     <title>Bora PROZEAR! 🚀</title>
     <link rel="stylesheet" href="style.css">
 </head>
-    <body>
+<body>
+    <audio id="notificacao-som" src="https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3" preload="auto"></audio>
+
     <div id="chat-container">
         <header>
             <h1>Bora PROZEAR! 🚀</h1>
         </header>
 
-        <div id="gif-modal" style="display:none; background:#202c33; padding:10px;">
-            <input type="text" id="gif-search-input" placeholder="Pesquisar GIFs...">
-            <div id="gif-list"></div>
+        <div id="gif-modal" style="display:none; background:#202c33; padding:10px; border-bottom: 1px solid #00a884;">
+            <input type="text" id="gif-search-input" placeholder="Pesquisar GIFs..." style="width:100%; padding:8px; border-radius:5px; border:none;">
+            <div id="gif-list" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:5px; max-height:200px; overflow-y:auto; margin-top:10px;"></div>
         </div>
 
-        <div id="chat-window" style="flex:1; overflow-y:auto; min-height:400px;"></div>
+        <div id="chat-window"></div>
 
         <div class="input-area">
             <button id="gif-btn">GIF</button>
@@ -29,6 +31,5 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="script.js"></script>
-</body>
 </body>
 </html>
