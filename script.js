@@ -1,12 +1,4 @@
-const firebaseConfig = {
-    apiKey: "AIzaSyAT3yJEb0VYpz-KEydMJ5Ug4rvPnTbPcf0",
-    authDomain: "meuchatbora.firebaseapp.com",
-    databaseURL: "https://meuchatbora-default-rtdb.firebaseio.com",
-    projectId: "meuchatbora",
-    storageBucket: "meuchatbora.firebasestorage.app",
-    messagingSenderId: "203988694746",
-    appId: "1:203988694746:web:002ace8fb51ffa203417e3"
-};
+// ... (mantenha seu firebaseConfig igual) ...
 
 firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
@@ -14,29 +6,28 @@ const database = firebase.database();
 let usuarioAtual = prompt("Qual é o seu nome?");
 if (!usuarioAtual || usuarioAtual.trim() === "") usuarioAtual = "Anônimo";
 
+// SENHA DE ADMIN: Se o nome for esse, você pode apagar tudo!
+const SOU_ADMIN = (usuarioAtual === "Admin-Hells~"); 
+
 const messageInput = document.getElementById('message-input');
 const sendBtn = document.getElementById('send-btn');
 const chatWindow = document.getElementById('chat-window');
+const som = document.getElementById('notificacao-som');
 
-// Função para enviar
 function sendMessage() {
     const message = messageInput.value.trim();
     if (message !== "") {
         const agora = new Date();
-        const hora = agora.getHours().toString().padStart(2, '0');
-        const minuto = agora.getMinutes().toString().padStart(2, '0');
-        
         database.ref('messages').push({
             username: usuarioAtual,
             text: message,
-            time: `${hora}:${minuto}`,
+            time: agora.getHours().toString().padStart(2, '0') + ":" + agora.getMinutes().toString().padStart(2, '0'),
             timestamp: Date.now()
         });
         messageInput.value = "";
     }
 }
 
-// Função para APAGAR a mensagem
 function removerMensagem(id) {
     if (confirm("Deseja apagar esta mensagem?")) {
         database.ref('messages/' + id).remove();
@@ -48,13 +39,19 @@ messageInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMe
 
 // Escutar novas mensagens
 database.ref('messages').on('child_added', (snapshot) => {
+    const data = snapshot.val();
+    
+    // Tocar som se a mensagem NÃO for minha
+    if (data.username !== usuarioAtual) {
+        som.play().catch(e => console.log("Som bloqueado pelo navegador até o primeiro clique."));
+    }
+    
     renderizarMensagem(snapshot);
 });
 
-// ESCUTAR QUANDO UMA MENSAGEM FOR APAGADA (Para sumir da tela de todos)
 database.ref('messages').on('child_removed', (snapshot) => {
-    const msgParaRemover = document.getElementById(snapshot.key);
-    if (msgParaRemover) msgParaRemover.remove();
+    const msg = document.getElementById(snapshot.key);
+    if (msg) msg.remove();
 });
 
 function renderizarMensagem(snapshot) {
@@ -66,8 +63,9 @@ function renderizarMensagem(snapshot) {
     messageElement.id = id;
     messageElement.classList.add('message', souEu ? "minha-msg" : "outra-msg");
 
-    // Botão de apagar (só aparece se a mensagem for sua)
-    const botaoApagar = souEu ? `<span class="delete-btn" onclick="removerMensagem('${id}')">🗑️</span>` : "";
+    // LÓGICA DE APAGAR: Aparece se for minha OU se eu for o Admin
+    const podeApagar = souEu || SOU_ADMIN;
+    const botaoApagar = podeApagar ? `<span class="delete-btn" onclick="removerMensagem('${id}')">🗑️</span>` : "";
 
     messageElement.innerHTML = `
         <span class="user-name">${data.username} ${botaoApagar}</span>
