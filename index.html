@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meu Chat Bora</title>
+    <title>Bora PROZEAR! 🚀</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -13,16 +13,17 @@
         <header>
             <h1>Bora PROZEAR! 🚀</h1>
         </header>
-        
-        <div id="gif-modal">
-            <div id="gif-list">
+
+        <div id="gif-modal" style="display:none; background:#202c33; border-bottom: 1px solid #00a884; padding: 10px; max-height: 200px; overflow-y: auto;">
+            <div id="gif-list" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
                 </div>
         </div>
 
         <div id="chat-window"></div>
-        
+
         <div class="input-area">
-            <button id="gif-btn">GIF</button>
+            <button id="gif-btn" style="background: #374045; color: white; border: none; padding: 8px 12px; border-radius: 20px; cursor: pointer; font-weight: bold;">GIF</button>
+            
             <input type="text" id="message-input" placeholder="Digite uma mensagem...">
             <button id="send-btn">Enviar</button>
         </div>
@@ -30,6 +31,7 @@
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
     <script src="script.js"></script>
 </body>
 </html>
