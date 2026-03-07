@@ -236,3 +236,14 @@ if (ehAudio) {
 } else {
     conteudo = `<p>${data.text}</p>`;
 }
+// Substitua a parte do micBtn.onclick por esta:
+const micBtn = document.getElementById('mic-btn');
+
+if (micBtn) { // Só executa se o botão existir no HTML
+    micBtn.onclick = async () => {
+        // ... (seu código de gravação que mandei antes)
+        console.log("Botão de microfone clicado!");
+    };
+} else {
+    console.error("Erro: O elemento 'mic-btn' não foi encontrado no HTML.");
+}
