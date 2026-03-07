@@ -155,3 +155,17 @@ database.ref('messages').on('child_removed', (snapshot) => {
     const elemento = document.getElementById(`msg-${snapshot.key}`);
     if (elemento) elemento.remove();
 });
+// No início do script.js, selecione o elemento
+const somNotificacao = document.getElementById('notificacao-som');
+
+// Dentro do database.ref('messages').on('child_added', (snapshot) => { ...
+database.ref('messages').on('child_added', (snapshot) => {
+    const data = snapshot.val();
+    
+    // Tocar o som apenas se a mensagem NÃO for sua (para não irritar)
+    if (data.username !== usuarioAtual && somNotificacao) {
+        somNotificacao.play().catch(e => console.log("Áudio bloqueado: clique na página primeiro."));
+    }
+
+    // ... (restante do seu código que cria a msgDiv)
+});
