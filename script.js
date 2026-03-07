@@ -5,9 +5,11 @@ const firebaseConfig = {
     projectId: "meuchatbora",
     storageBucket: "meuchatbora.firebasestorage.app",
     messagingSenderId: "203988694746",
-    appId: "1:203988694746:web:002ace8fb51ffa203417e3"
+    appId: "1:203988694746:web:002ace8fb51ffa203417e3",
+    measurementId: "G-HMWGNS289G"
 };
 
+// Inicializa o Firebase
 firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
 
@@ -28,11 +30,14 @@ function sendMessage() {
 }
 
 sendBtn.addEventListener('click', sendMessage);
-messageInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
+messageInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') sendMessage();
+});
 
 database.ref('messages').on('child_added', (snapshot) => {
     const data = snapshot.val();
     const messageElement = document.createElement('div');
+    messageElement.style.padding = "5px";
     messageElement.innerHTML = `<strong>${data.username}:</strong> ${data.text}`;
     chatWindow.appendChild(messageElement);
     chatWindow.scrollTop = chatWindow.scrollHeight;
