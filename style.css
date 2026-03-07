@@ -139,3 +139,13 @@ header {
     object-fit: cover;
     border-radius: 5px;
 }
+/* Garante que o lugar dos GIFs apareça com 3 colunas */
+#gif-list {
+    display: grid !important; /* Força a exibição em grade */
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    max-height: 250px;
+    overflow-y: auto;
+    margin-top: 10px;
+    padding-bottom: 5px;
+}
