@@ -116,3 +116,19 @@ database.ref('messages').on('child_added', (snapshot) => {
     chatWindow.appendChild(msgDiv);
     chatWindow.scrollTop = chatWindow.scrollHeight;
 });
+const clearBtn = document.getElementById('clear-chat-btn');
+
+// Verifica se o usuário é Admin para mostrar o botão
+if (usuarioAtual === "Admin-Hells~") {
+    clearBtn.style.display = "block";
+}
+
+// Função para apagar o banco de dados
+if (clearBtn) {
+    clearBtn.onclick = () => {
+        if (confirm("Deseja mesmo apagar todo o histórico de mensagens?")) {
+            database.ref('messages').remove();
+            location.reload(); // Recarrega para limpar a tela
+        }
+    };
+}
