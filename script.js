@@ -42,7 +42,7 @@ async function buscarGifs(termo = '') {
     if (!lista) return;
 
     // Usando uma chave de demonstração alternativa
-    const apiKey = 'LIVD6OHS9SU3'; // Se esta não funcionar, tente 'dc6zaTOxFJmzC' novamente
+    const apiKey = 'Yul3vV8u0jSzwIQSNjVNsu5weoTaAhPB'; // Se esta não funcionar, tente 'dc6zaTOxFJmzC' novamente
     const endpoint = termo ? 'search' : 'trending';
     
     // Mudamos um pouco a estrutura da URL para garantir compatibilidade
