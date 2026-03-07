@@ -239,3 +239,15 @@ header {
     border-radius: 20px;
     display: inline-block;
 }
+/* No seu style.css */
+.input-area {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Dá um espacinho entre o GIF, o Microfone e o Texto */
+    padding: 10px;
+}
+
+#message-input {
+    flex: 1; /* Faz o campo de texto ocupar o resto do espaço */
+    min-width: 0; /* Evita que o input empurre os botões para fora */
+}
