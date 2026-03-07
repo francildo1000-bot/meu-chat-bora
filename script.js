@@ -1,4 +1,4 @@
-// Configuração oficial do seu Firebase (conforme seu print)
+// Configuração oficial do seu Firebase (Baseado nos seus prints)
 const firebaseConfig = {
     apiKey: "AIzaSyAT3yJEb0VYpz-KEydMJ5Ug4rvPnTbPcf0",
     authDomain: "meuchatbora.firebaseapp.com",
@@ -14,12 +14,12 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
 
-// Selecionando os elementos da tela
+// Selecionando os elementos da interface
 const messageInput = document.getElementById('message-input');
 const sendBtn = document.getElementById('send-btn');
 const chatWindow = document.getElementById('chat-window');
 
-// Função para enviar mensagem
+// Função para enviar mensagem ao Firebase
 function sendMessage() {
     const message = messageInput.value.trim();
     if (message !== "") {
@@ -27,26 +27,38 @@ function sendMessage() {
             username: "Admin-Hells~",
             text: message,
             timestamp: Date.now()
+        }).then(() => {
+            console.log("Mensagem enviada com sucesso!");
+            messageInput.value = ""; // Limpa o campo
+        }).catch((error) => {
+            console.error("Erro ao enviar mensagem: ", error);
+            alert("Erro ao enviar! Verifique as regras (Rules) no Firebase.");
         });
-        messageInput.value = ""; // Limpa o campo
     }
 }
 
-// Escutar o botão e a tecla Enter
-sendBtn.addEventListener('click', sendMessage);
-messageInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') sendMessage();
-});
+// Aguarda o carregamento para ativar os botões e mostrar mensagens
+window.onload = function() {
+    console.log("Chat pronto para uso!");
 
-// Receber e exibir mensagens em tempo real
-database.ref('messages').on('child_added', (snapshot) => {
-    const data = snapshot.val();
-    const messageElement = document.createElement('div');
-    messageElement.classList.add('message');
-    
-    // Formatação: Nome em negrito + Mensagem
-    messageElement.innerHTML = `<strong>${data.username}:</strong> ${data.text}`;
-    
-    chatWindow.appendChild(messageElement);
-    chatWindow.scrollTop = chatWindow.scrollHeight; // Rola o chat para o final
-});
+    // Escutar o clique no botão de enviar
+    sendBtn.addEventListener('click', sendMessage);
+
+    // Escutar a tecla Enter no teclado
+    messageInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendMessage();
+    });
+
+    // Escutar e exibir novas mensagens em tempo real
+    database.ref('messages').on('child_added', (snapshot) => {
+        const data = snapshot.val();
+        const messageElement = document.createElement('div');
+        messageElement.classList.add('message');
+        
+        // Estrutura: Nome em negrito + Texto da mensagem
+        messageElement.innerHTML = `<strong>${data.username}:</strong> ${data.text}`;
+        
+        chatWindow.appendChild(messageElement);
+        chatWindow.scrollTop = chatWindow.scrollHeight; // Rola o chat para o fim
+    });
+};
