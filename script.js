@@ -191,3 +191,48 @@ database.ref('status').on('value', (snapshot) => {
         onlineCountSpan.innerText = totalOnline;
     }
 });
+let mediaRecorder;
+let audioChunks = [];
+const micBtn = document.getElementById('mic-btn');
+
+micBtn.onclick = async () => {
+    if (!mediaRecorder || mediaRecorder.state === "inactive") {
+        // Iniciar Gravação
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
+
+        mediaRecorder.ondataavailable = (event) => audioChunks.push(event.data);
+        
+        mediaRecorder.onstop = async () => {
+            const audioBlob = new Blob(audioChunks, { type: 'audio/mpeg' });
+            const reader = new FileReader();
+            reader.readAsDataURL(audioBlob); 
+            reader.onloadend = () => {
+                const base64Audio = reader.result;
+                enviarMensagem(base64Audio, "audio"); // Envia o áudio como texto Base64
+            };
+        };
+
+        mediaRecorder.start();
+        micBtn.innerText = "🛑"; // Muda o ícone enquanto grava
+        micBtn.style.color = "red";
+    } else {
+        // Parar Gravação
+        mediaRecorder.stop();
+        micBtn.innerText = "🎤";
+        micBtn.style.color = "";
+    }
+};
+// Dentro do database.ref('messages').on('child_added', ...)
+const ehAudio = data.text.startsWith('data:audio');
+const ehGif = data.text.includes('giphy.com');
+
+let conteudo;
+if (ehAudio) {
+    conteudo = `<audio controls src="${data.text}" style="width: 200px; height: 30px;"></audio>`;
+} else if (ehGif) {
+    conteudo = `<img src="${data.text}" style="max-width:200px; border-radius:10px;">`;
+} else {
+    conteudo = `<p>${data.text}</p>`;
+}
