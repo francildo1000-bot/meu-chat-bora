@@ -1,4 +1,3 @@
-// Configuração do seu Firebase (Dados reais do seu projeto)
 const firebaseConfig = {
     apiKey: "AIzaSyAT3yJEb0VYpz-KEydMJ5Ug4rvPnTbPcf0",
     authDomain: "meuchatbora.firebaseapp.com",
@@ -10,51 +9,49 @@ const firebaseConfig = {
     measurementId: "G-HMWGNS289G"
 };
 
-// Inicializa o Firebase
 firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
 
-// --- SISTEMA DE NOME: Pergunta ao entrar no link ---
-let usuarioAtual = prompt("Qual é o seu nome para o chat?");
-
-// Se a pessoa cancelar ou deixar em branco, o nome será "Anônimo"
-if (!usuarioAtual || usuarioAtual.trim() === "") {
-    usuarioAtual = "Anônimo";
-}
-// --------------------------------------------------
+let usuarioAtual = prompt("Qual é o seu nome?");
+if (!usuarioAtual || usuarioAtual.trim() === "") usuarioAtual = "Anônimo";
 
 const messageInput = document.getElementById('message-input');
 const sendBtn = document.getElementById('send-btn');
 const chatWindow = document.getElementById('chat-window');
 
-// Função para enviar mensagem usando o nome capturado
 function sendMessage() {
     const message = messageInput.value.trim();
     if (message !== "") {
+        const agora = new Date();
+        const horaFormatada = agora.getHours().toString().padStart(2, '0') + ":" + agora.getMinutes().toString().padStart(2, '0');
+
         database.ref('messages').push({
-            username: usuarioAtual, 
+            username: usuarioAtual,
             text: message,
+            time: horaFormatada, // Envia a hora junto
             timestamp: Date.now()
         });
-        messageInput.value = ""; 
+        messageInput.value = "";
     }
 }
 
-// Eventos de clique e tecla Enter
 sendBtn.addEventListener('click', sendMessage);
-messageInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') sendMessage();
-});
+messageInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
 
-// Receber e exibir as mensagens com os nomes corretos
 database.ref('messages').on('child_added', (snapshot) => {
     const data = snapshot.val();
     const messageElement = document.createElement('div');
-    messageElement.style.marginBottom = "8px";
     
-    // Mostra o nome em negrito e depois a mensagem
-    messageElement.innerHTML = `<strong>${data.username}:</strong> ${data.text}`;
+    // Verifica se a mensagem é sua para mudar a cor
+    const souEu = data.username === usuarioAtual ? "minha-msg" : "outra-msg";
+    
+    messageElement.classList.add('message', souEu);
+    messageElement.innerHTML = `
+        <span class="user-name">${data.username}</span>
+        <p class="text-msg">${data.text}</p>
+        <span class="time-msg">${data.time || '--:--'}</span>
+    `;
     
     chatWindow.appendChild(messageElement);
-    chatWindow.scrollTop = chatWindow.scrollHeight; 
+    chatWindow.scrollTop = chatWindow.scrollHeight;
 });
