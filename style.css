@@ -179,3 +179,35 @@ header {
 #clear-chat-btn:hover {
     opacity: 1;
 }
+/* Ajustes para Celular */
+@media (max-width: 600px) {
+    #chat-container {
+        width: 100%;
+        height: 100vh;
+    }
+
+    /* Diminui o tamanho do modal de GIF no celular para não cobrir tudo */
+    #gif-modal {
+        bottom: 60px;
+        left: 5px;
+        right: 5px;
+        padding: 8px;
+    }
+
+    #gif-list {
+        grid-template-columns: repeat(2, 1fr); /* 2 colunas no celular fica melhor */
+        max-height: 180px;
+    }
+
+    /* Garante que a área de input sempre fique visível no rodapé */
+    .input-area {
+        padding: 8px;
+        position: sticky;
+        bottom: 0;
+        background: #202c33;
+    }
+
+    #message-input {
+        font-size: 16px; /* Evita que o iPhone dê zoom automático ao clicar */
+    }
+}
