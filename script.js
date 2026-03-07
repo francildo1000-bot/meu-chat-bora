@@ -1,4 +1,3 @@
-// Configuração do seu Firebase
 const firebaseConfig = {
     apiKey: "AIzaSyAT3yJEb0VYpz-KEydMJ5Ug4rvPnTbPcf0",
     authDomain: "meuchatbora.firebaseapp.com",
@@ -9,77 +8,62 @@ const firebaseConfig = {
     appId: "1:203988694746:web:002ace8fb51ffa203417e3"
 };
 
-// Inicializa o Firebase e o Banco de Dados
-if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
-}
+if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
 const database = firebase.database();
 
-// Pergunta o nome e define se é Admin
 let usuarioAtual = prompt("Qual é o seu nome?");
 if (!usuarioAtual || usuarioAtual.trim() === "") usuarioAtual = "Anônimo";
-
-// Se entrar com este nome exato, vira Admin e pode apagar qualquer mensagem
 const SOU_ADMIN = (usuarioAtual === "Admin-Hells~");
 
-// Seleciona os elementos da tela
 const messageInput = document.getElementById('message-input');
 const sendBtn = document.getElementById('send-btn');
 const chatWindow = document.getElementById('chat-window');
-const somNotificacao = document.getElementById('notificacao-som');
+const som = document.getElementById('notificacao-som');
 
-// Função para ENVIAR mensagem
 function sendMessage() {
-    const messageText = messageInput.value.trim();
-    
-    if (messageText !== "") {
+    const text = messageInput.value.trim();
+    if (text !== "") {
         const agora = new Date();
-        const horaFormatada = agora.getHours().toString().padStart(2, '0') + ":" + agora.getMinutes().toString().padStart(2, '0');
-
+        const hora = agora.getHours().toString().padStart(2, '0') + ":" + agora.getMinutes().toString().padStart(2, '0');
+        
         database.ref('messages').push({
             username: usuarioAtual,
-            text: messageText,
-            time: horaFormatada,
-            timestamp: Date.now()
-        }).then(() => {
-            messageInput.value = ""; 
-        }).catch((error) => {
-            console.error("Erro ao enviar:", error);
+            text: text,
+            time: hora
         });
+        messageInput.value = "";
     }
 }
 
-// Função para APAGAR mensagem
-window.removerMensagem = function(id) {
-    if (confirm("Deseja apagar esta mensagem?")) {
-        database.ref('messages/' + id).remove();
-    }
-};
-
-// Eventos de clique e teclado
 sendBtn.onclick = sendMessage;
-messageInput.onkeypress = (e) => {
-    if (e.key === 'Enter') sendMessage();
-};
+messageInput.onkeypress = (e) => { if (e.key === 'Enter') sendMessage(); };
 
-// Escuta novas mensagens (Recebimento)
+// ESSA PARTE FAZ APARECER NA TELA
 database.ref('messages').on('child_added', (snapshot) => {
     const data = snapshot.val();
     const id = snapshot.key;
-    
-    // Tocar som se não for minha mensagem
-    if (data.username !== usuarioAtual && somNotificacao) {
-        somNotificacao.play().catch(() => {});
-    }
-
-    const messageElement = document.createElement('div');
     const souEu = data.username === usuarioAtual;
     
-    messageElement.id = id;
-    messageElement.classList.add('message', souEu ? "minha-msg" : "outra-msg");
+    // Tocar som se não for meu
+    if (!souEu && som) som.play().catch(() => {});
 
-    // Lógica do botão apagar (Aparece para o dono da msg ou para o Admin)
-    const podeApagar = souEu || SOU_ADMIN;
-    const botaoApagar = podeApagar ? `<span class="delete-btn" onclick="removerMensagem('${id}')">🗑️</span>` : "";
+    const msgDiv = document.createElement('div');
+    msgDiv.id = id;
+    msgDiv.classList.add('message', souEu ? 'minha-msg' : 'outra-msg');
 
-    // --- LÓGICA DE FIGURINHAS/
+    const ehImagem = data.text.match(/\.(jpeg|jpg|gif|png|webp)$/i) != null;
+    const conteudo = ehImagem ? `<img src="${data.text}" style="max-width:180px; border-radius:8px; display:block; margin-top:5px;">` : `<p class="text-msg">${data.text}</p>`;
+    const btnApagar = (souEu || SOU_ADMIN) ? `<span class="delete-btn" onclick="removerMensagem('${id}')">🗑️</span>` : "";
+
+    msgDiv.innerHTML = `
+        <span class="user-name">${data.username} ${btnApagar}</span>
+        ${conteudo}
+        <span class="time-msg">${data.time || '--:--'}</span>
+    `;
+
+    chatWindow.appendChild(msgDiv);
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+});
+
+window.removerMensagem = (id) => { if(confirm("Apagar?")) database.ref('messages/'+id).remove(); };
+database.ref('messages').on('child_removed', (snapshot) => { document.getElementById(snapshot.key)?.remove(); });
