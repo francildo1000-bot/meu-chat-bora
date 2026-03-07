@@ -50,11 +50,11 @@ if (sendBtn) {
 }
 
 // 5. Lógica de GIFs (API Giphy)
-async function buscarGifs(termo = 'trending') {
+async function buscarGifs(termo = '') {
     const lista = document.getElementById('gif-list');
     if (!lista) return;
 
-    const apiKey = 'dc6zaTOxFJmzC';
+    const apiKey = 'dc6zaTOxFJmzC'; // Chave pública estável
     const endpoint = termo ? 'search' : 'trending';
     const url = `https://api.giphy.com/v1/gifs/${endpoint}?api_key=${apiKey}&q=${termo}&limit=12&rating=g`;
 
@@ -62,18 +62,21 @@ async function buscarGifs(termo = 'trending') {
         const response = await fetch(url);
         const { data } = await response.json();
         
-        lista.innerHTML = ""; // ISSO AQUI LIMPA A BUSCA ANTERIOR
+        lista.innerHTML = ""; // Limpa a busca anterior
         
         data.forEach(gif => {
             const img = document.createElement('img');
             img.src = gif.images.fixed_height_small.url;
+            img.style.cursor = "pointer";
             img.onclick = () => {
                 enviarMensagem(gif.images.original.url);
                 document.getElementById('gif-modal').style.display = 'none';
             };
             lista.appendChild(img);
         });
-    } catch (e) { console.error(e); }
+    } catch (e) { 
+        console.error("Erro na busca de GIFs:", e); 
+    }
 }
 
 // Abrir/Fechar modal de GIFs
