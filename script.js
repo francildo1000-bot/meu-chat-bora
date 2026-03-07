@@ -38,37 +38,47 @@ function enviarMensagem(conteudo) {
 
 // 4. Busca de GIFs (Ajustada para funcionar no seu layout)
 async function buscarGifs(termo = '') {
-    if (!gifList) return;
-    
-    const apiKey = 'dc6zaTOxFJmzC'; 
+    const lista = document.getElementById('gif-list');
+    if (!lista) return;
+
+    // Usando uma chave de demonstração alternativa
+    const apiKey = 'LIVD6OHS9SU3'; // Se esta não funcionar, tente 'dc6zaTOxFJmzC' novamente
     const endpoint = termo ? 'search' : 'trending';
-    const url = `https://api.giphy.com/v1/gifs/${endpoint}?api_key=${apiKey}&q=${termo}&limit=12&rating=g`;
     
+    // Mudamos um pouco a estrutura da URL para garantir compatibilidade
+    const url = `https://api.giphy.com/v1/gifs/${endpoint}?api_key=dc6zaTOxFJmzC&q=${termo}&limit=12&rating=g`;
+
     try {
-        gifList.innerHTML = "<p style='color:gray; font-size:12px; padding:10px;'>Buscando...</p>";
+        lista.innerHTML = "<p style='color:gray; font-size:12px; padding:10px;'>Buscando...</p>";
         
         const response = await fetch(url);
         const { data } = await response.json();
         
-        gifList.innerHTML = ""; // Limpa o "Buscando..." ou erros anteriores
-        
-        if (data.length === 0) {
-            gifList.innerHTML = "<p style='color:gray; font-size:12px; padding:10px;'>Nenhum GIF encontrado.</p>";
+        lista.innerHTML = ""; 
+
+        if (!data || data.length === 0) {
+            lista.innerHTML = "<p style='color:gray; font-size:12px; padding:10px;'>Nenhum GIF encontrado para '" + termo + "'.</p>";
             return;
         }
 
         data.forEach(gif => {
             const img = document.createElement('img');
             img.src = gif.images.fixed_height_small.url;
+            img.style.width = "100%";
+            img.style.height = "100px";
+            img.style.objectFit = "cover";
+            img.style.borderRadius = "5px";
+            img.style.cursor = "pointer";
+            
             img.onclick = () => {
                 enviarMensagem(gif.images.original.url);
-                gifModal.style.display = 'none'; // Fecha o modal após enviar
+                document.getElementById('gif-modal').style.display = 'none';
             };
-            gifList.appendChild(img);
+            lista.appendChild(img);
         });
     } catch (e) { 
-        console.error("Erro Giphy:", e); 
-        gifList.innerHTML = "<p style='color:red;'>Erro ao carregar GIFs.</p>";
+        console.error("Erro:", e);
+        lista.innerHTML = "<p style='color:red;'>Erro de conexão.</p>";
     }
 }
 
