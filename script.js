@@ -51,25 +51,29 @@ if (sendBtn) {
 
 // 5. Lógica de GIFs (API Giphy)
 async function buscarGifs(termo = 'trending') {
-    if (!gifList) return;
-    const apiKey = 'dc6zaTOxFJmzC'; // Chave pública estável
-    const url = `https://api.giphy.com/v1/gifs/search?api_key=${apiKey}&q=${termo}&limit=12&rating=g`;
-    
+    const lista = document.getElementById('gif-list');
+    if (!lista) return;
+
+    const apiKey = 'dc6zaTOxFJmzC';
+    const endpoint = termo ? 'search' : 'trending';
+    const url = `https://api.giphy.com/v1/gifs/${endpoint}?api_key=${apiKey}&q=${termo}&limit=12&rating=g`;
+
     try {
         const response = await fetch(url);
         const { data } = await response.json();
         
-        gifList.innerHTML = ""; 
+        lista.innerHTML = ""; // ISSO AQUI LIMPA A BUSCA ANTERIOR
+        
         data.forEach(gif => {
             const img = document.createElement('img');
             img.src = gif.images.fixed_height_small.url;
             img.onclick = () => {
                 enviarMensagem(gif.images.original.url);
-                gifModal.style.display = 'none'; // Esconde após enviar
+                document.getElementById('gif-modal').style.display = 'none';
             };
-            gifList.appendChild(img);
+            lista.appendChild(img);
         });
-    } catch (e) { console.error("Erro na busca de GIFs:", e); }
+    } catch (e) { console.error(e); }
 }
 
 // Abrir/Fechar modal de GIFs
