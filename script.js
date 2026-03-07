@@ -1,4 +1,4 @@
-// 1. Configuração do Firebase (Mantenha seus dados)
+// 1. Configuração do Firebase (Dados extraídos do seu projeto)
 const firebaseConfig = {
     apiKey: "AIzaSyAT3yJEb0VYpz-KEydMJ5Ug4rvPnTbPcf0",
     authDomain: "meuchatbora.firebaseapp.com",
@@ -9,10 +9,13 @@ const firebaseConfig = {
     appId: "1:203988694746:web:002ace8fb51ffa203417e3"
 };
 
-if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+// Inicializa o Firebase apenas se não houver um app rodando
+if (!firebase.apps.length) { 
+    firebase.initializeApp(firebaseConfig); 
+}
 const database = firebase.database();
 
-// 2. Variáveis de Elementos (Garante que o JS ache o HTML)
+// 2. Seleção de Elementos do HTML
 const messageInput = document.getElementById('message-input');
 const sendBtn = document.getElementById('send-btn');
 const chatWindow = document.getElementById('chat-window');
@@ -21,66 +24,22 @@ const gifModal = document.getElementById('gif-modal');
 const gifList = document.getElementById('gif-list');
 const gifSearchInput = document.getElementById('gif-search-input');
 
-let usuarioAtual = prompt("Qual é o seu nome?") || "Anônimo";
+// 3. Identificação do Usuário
+let usuarioAtual = prompt("Qual é o seu nome?") || "Visitante";
 
-// 3. Função de Enviar (Texto ou Link de GIF)
+// 4. Função Principal de Envio
 function enviarMensagem(conteudo) {
-    if (!conteudo) return;
     const agora = new Date();
-    const hora = agora.getHours().toString().padStart(2, '0') + ":" + agora.getMinutes().toString().padStart(2, '0');
+    const horaFormatada = agora.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
     
     database.ref('messages').push({
         username: usuarioAtual,
         text: conteudo,
-        time: hora
+        time: horaFormatada
     });
 }
 
-// 4. Lógica de Busca de GIFs (O QUE ESTAVA FALTANDO)
-async function buscarGifs(termo = 'trending') {
-    if (!gifList) return;
-    const apiKey = 'dc6zaTOxFJmzC'; // Chave pública do Giphy
-    const url = `https://api.giphy.com/v1/gifs/search?api_key=${apiKey}&q=${termo}&limit=12&rating=g`;
-    
-    try {
-        const response = await fetch(url);
-        const { data } = await response.json();
-        
-        gifList.innerHTML = ""; // Limpa a lista antes de mostrar novos
-        data.forEach(gif => {
-            const img = document.createElement('img');
-            img.src = gif.images.fixed_height_small.url;
-            img.style.width = "100%";
-            img.style.cursor = "pointer";
-            img.style.borderRadius = "5px";
-            
-            // Ao clicar no GIF, envia o link original
-            img.onclick = () => {
-                enviarMensagem(gif.images.original.url);
-                gifModal.style.display = 'none';
-            };
-            gifList.appendChild(img);
-        });
-    } catch (e) { console.error("Erro Giphy:", e); }
-}
-
-// 5. Eventos dos Botões
-if (gifBtn) {
-    gifBtn.onclick = () => {
-        const visivel = gifModal.style.display === 'block';
-        gifModal.style.display = visivel ? 'none' : 'block';
-        if (!visivel) buscarGifs(); // Carrega os iniciais ao abrir
-    };
-}
-
-if (gifSearchInput) {
-    gifSearchInput.oninput = (e) => {
-        if (e.target.value.length > 2) {
-            buscarGifs(e.target.value); // Busca enquanto você digita
-        }
-    };
-}
-
+// Evento do botão de enviar texto
 if (sendBtn) {
     sendBtn.onclick = () => {
         if (messageInput.value.trim() !== "") {
@@ -90,7 +49,46 @@ if (sendBtn) {
     };
 }
 
-// 6. Mostrar mensagens na tela (Balões verdes)
+// 5. Lógica de GIFs (API Giphy)
+async function buscarGifs(termo = 'trending') {
+    if (!gifList) return;
+    const apiKey = 'dc6zaTOxFJmzC'; // Chave pública estável
+    const url = `https://api.giphy.com/v1/gifs/search?api_key=${apiKey}&q=${termo}&limit=12&rating=g`;
+    
+    try {
+        const response = await fetch(url);
+        const { data } = await response.json();
+        
+        gifList.innerHTML = ""; 
+        data.forEach(gif => {
+            const img = document.createElement('img');
+            img.src = gif.images.fixed_height_small.url;
+            img.onclick = () => {
+                enviarMensagem(gif.images.original.url);
+                gifModal.style.display = 'none'; // Esconde após enviar
+            };
+            gifList.appendChild(img);
+        });
+    } catch (e) { console.error("Erro na busca de GIFs:", e); }
+}
+
+// Abrir/Fechar modal de GIFs
+if (gifBtn) {
+    gifBtn.onclick = () => {
+        const estaAberto = gifModal.style.display === 'block';
+        gifModal.style.display = estaAberto ? 'none' : 'block';
+        if (!estaAberto) buscarGifs();
+    };
+}
+
+// Pesquisar GIFs ao digitar
+if (gifSearchInput) {
+    gifSearchInput.oninput = (e) => {
+        if (e.target.value.length > 2) buscarGifs(e.target.value);
+    };
+}
+
+// 6. Escutar o Banco de Dados e Mostrar na Tela
 database.ref('messages').on('child_added', (snapshot) => {
     const data = snapshot.val();
     if (!chatWindow) return;
@@ -99,11 +97,18 @@ database.ref('messages').on('child_added', (snapshot) => {
     const souEu = data.username === usuarioAtual;
     msgDiv.className = `message ${souEu ? 'minha-msg' : 'outra-msg'}`;
 
-    const ehGif = data.text.includes('giphy.com') || data.text.match(/\.(gif|jpg|png)$/);
-    const conteudo = ehGif ? `<img src="${data.text}" style="max-width:200px; border-radius:10px;">` : `<p>${data.text}</p>`;
+    // Verifica se a mensagem é um link de imagem/GIF
+    const ehImagem = data.text.includes('http') && (data.text.includes('giphy') || data.text.match(/\.(gif|jpg|png)$/));
+    const conteudoHTML = ehImagem ? 
+        `<img src="${data.text}" style="max-width:100%; border-radius:8px;">` : 
+        `<p>${data.text}</p>`;
 
     msgDiv.innerHTML = `
-    <span class="user-name">${data.username}</span>
-    ${conteudo}
-    <span class="time-msg">${horario}</span>
-`;
+        <span class="user-name">${data.username}</span>
+        ${conteudoHTML}
+        <span class="time-msg">${data.time || 'Agora'}</span>
+    `;
+    
+    chatWindow.appendChild(msgDiv);
+    chatWindow.scrollTop = chatWindow.scrollHeight; // Rola para a última mensagem
+});
