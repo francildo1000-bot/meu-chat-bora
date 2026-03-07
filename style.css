@@ -232,3 +232,10 @@ header {
     opacity: 1;
     transform: scale(1.2);
 }
+#status-container {
+    margin-top: 5px;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 4px 10px;
+    border-radius: 20px;
+    display: inline-block;
+}

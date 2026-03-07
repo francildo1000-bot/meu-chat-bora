@@ -169,3 +169,25 @@ database.ref('messages').on('child_added', (snapshot) => {
 
     // ... (restante do seu código que cria a msgDiv)
 });
+// Referências para o contador
+const onlineCountSpan = document.getElementById('online-count');
+const userStatusRef = database.ref('status/' + usuarioAtual.replace(/[.#$[\]]/g, "_")); // Limpa caracteres especiais do nome
+
+// 1. Detecta conexão com o Firebase
+database.ref(".info/connected").on("value", (snapshot) => {
+    if (snapshot.val() === true) {
+        // Quando eu desconectar, o Firebase apaga meu registro automaticamente!
+        userStatusRef.onDisconnect().remove();
+        
+        // Marca que estou online agora
+        userStatusRef.set(true);
+    }
+});
+
+// 2. Escuta mudanças na lista de online para atualizar o contador na tela
+database.ref('status').on('value', (snapshot) => {
+    const totalOnline = snapshot.numChildren();
+    if (onlineCountSpan) {
+        onlineCountSpan.innerText = totalOnline;
+    }
+});
