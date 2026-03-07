@@ -7,10 +7,30 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="chat-container">
-        <header>
+    <header>
     <h1>Bora PROZEAR! 🚀</h1>
-    <button id="clear-chat-btn" style="display:none; background:red; font-size:10px; margin-top:5px;">Apagar Tudo (ADM)</button>
+    <div id="status-container">
+        🟢 <span id="online-count">0</span> online
+    </div>
+</header>
+
+<div id="chat-container">
+    <div id="chat-window"></div>
+    
+    <div class="input-area">
+        <button id="gif-btn">GIF</button>
+        <button id="mic-btn" type="button">🎤</button>
+        <input type="text" id="message-input" placeholder="Digite uma mensagem...">
+        <button id="send-btn">Enviar</button>
+    </div>
+</div>
+
+<div id="gif-modal">
+    <input type="text" id="gif-search" placeholder="Buscar GIF...">
+    <div id="gif-list"></div>
+</div>
+
+<script src="script.js"></script>
 </header>
         
         <div id="chat-window"></div>
