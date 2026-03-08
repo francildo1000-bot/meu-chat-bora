@@ -26,7 +26,7 @@ const onlineCountSpan = document.getElementById('online-count');
 
 let usuarioAtual = prompt("Qual é o seu nome?") || "Visitante";
 
-// 3. Funções de Envio
+// 3. Função de Envio
 function enviarMensagem(conteudo) {
     if (!conteudo) return;
     const agora = new Date();
@@ -39,7 +39,7 @@ function enviarMensagem(conteudo) {
     });
 }
 
-// 4. Lógica do Microfone
+// 4. Lógica do Microfone (Áudio)
 let mediaRecorder;
 let audioChunks = [];
 
@@ -60,7 +60,7 @@ if (micBtn) {
                 mediaRecorder.start();
                 micBtn.innerText = "🛑";
                 micBtn.style.color = "red";
-            } catch (err) { alert("Ligue o microfone!"); }
+            } catch (err) { alert("Ative o microfone!"); }
         } else {
             mediaRecorder.stop();
             micBtn.innerText = "🎤";
@@ -69,7 +69,7 @@ if (micBtn) {
     };
 }
 
-// 5. Lógica de GIFs
+// 5. Busca de GIFs
 async function buscarGifs(termo = '') {
     const apiKey = 'Yul3vV8u0jSzwIQSNjVNsu5weoTaAhPB'; 
     const endpoint = termo ? 'search' : 'trending';
@@ -91,82 +91,36 @@ async function buscarGifs(termo = '') {
     } catch (e) { console.error("Erro nos GIFs:", e); }
 }
 
-// 6. Exibir Mensagens
+// 6. Exibição em Tempo Real
 database.ref('messages').on('child_added', (snapshot) => {
     const data = snapshot.val();
-    const messageId = snapshot.key;
-    
-    if (data.username !== usuarioAtual && somNotificacao) {
-        somNotificacao.play().catch(() => {});
-    }
-
     const msgDiv = document.createElement('div');
     const souEu = data.username === usuarioAtual;
     msgDiv.className = `message ${souEu ? 'minha-msg' : 'outra-msg'}`;
-    msgDiv.id = `msg-${messageId}`;
 
     let conteudoFinal;
     if (data.text.startsWith('data:audio')) {
-        conteudoFinal = `<audio controls src="${data.text}" style="width: 200px; height: 35px;"></audio>`;
+        conteudoFinal = `<audio controls src="${data.text}"></audio>`;
     } else if (data.text.includes('giphy.com')) {
-        conteudoFinal = `<img src="${data.text}" style="max-width:200px; border-radius:10px;">`;
+        conteudoFinal = `<img src="${data.text}" style="max-width:200px;">`;
     } else {
         conteudoFinal = `<p>${data.text}</p>`;
     }
 
-    msgDiv.innerHTML = `
-        <span class="user-name">${data.username}</span>
-        ${conteudoFinal}
-        <div class="footer-msg">
-            <span class="time-msg">${data.time || 'Agora'}</span>
-            ${souEu ? `<button class="delete-btn" onclick="apagarMinhaMensagem('${messageId}')">🗑️</button>` : ""}
-        </div>
-    `;
+    msgDiv.innerHTML = `<span class="user-name">${data.username}</span>${conteudoFinal}`;
     chatWindow.appendChild(msgDiv);
     chatWindow.scrollTop = chatWindow.scrollHeight;
 });
 
-// 7. Apagar Mensagens e Status Online
-window.apagarMinhaMensagem = (id) => {
-    if (confirm("Apagar?")) database.ref('messages/' + id).remove();
+// Eventos de clique
+if (gifBtn) gifBtn.onclick = () => {
+    gifModal.style.display = gifModal.style.display === 'none' ? 'block' : 'none';
+    if (gifModal.style.display === 'block') buscarGifs();
 };
 
-database.ref('messages').on('child_removed', (snapshot) => {
-    const elemento = document.getElementById(`msg-${snapshot.key}`);
-    if (elemento) elemento.remove();
-});
+if (gifSearchInput) gifSearchInput.oninput = (e) => buscarGifs(e.target.value);
 
-const userStatusRef = database.ref('status/' + usuarioAtual.replace(/[.#$[\]]/g, "_"));
-database.ref(".info/connected").on("value", (snapshot) => {
-    if (snapshot.val() === true) {
-        userStatusRef.onDisconnect().remove();
-        userStatusRef.set(true);
-    }
-});
-database.ref('status').on('value', (snapshot) => {
-    if (onlineCountSpan) onlineCountSpan.innerText = snapshot.numChildren();
-});
-
-// 8. Eventos de Interface
-if (gifBtn) {
-    gifBtn.onclick = () => {
-        const visivel = gifModal.style.display === 'block';
-        gifModal.style.display = visivel ? 'none' : 'block';
-        if (!visivel) buscarGifs();
-    };
-}
-
-if (gifSearchInput) {
-    gifSearchInput.oninput = (e) => {
-        if (e.target.value.length > 2) buscarGifs(e.target.value);
-    };
-}
-
-if (sendBtn) {
-    sendBtn.onclick = () => {
-        if (messageInput.value.trim()) {
-            enviarMensagem(messageInput.value);
-            messageInput.value = "";
-        }
-    };
-}
+if (sendBtn) sendBtn.onclick = () => {
+    enviarMensagem(messageInput.value);
+    messageInput.value = "";
+};
