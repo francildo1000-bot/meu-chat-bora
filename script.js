@@ -9,10 +9,13 @@ const firebaseConfig = {
     appId: "1:203988694746:web:002ace8fb51ffa203417e3"
 };
 
-if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+// Inicializa Firebase apenas se não houver outra instância
+if (!firebase.apps.length) { 
+    firebase.initializeApp(firebaseConfig); 
+}
 const database = firebase.database();
 
-// 2. Seleção de Elementos (SEM DUPLICATAS)
+// 2. Seleção de Elementos
 const messageInput = document.getElementById('message-input');
 const sendBtn = document.getElementById('send-btn');
 const chatWindow = document.getElementById('chat-window');
@@ -39,7 +42,31 @@ function enviarMensagem(conteudo) {
     });
 }
 
-// 4. Lógica do Microfone (Áudio)
+// 4. Lógica de GIFs
+async function buscarGifs(termo = '') {
+    const apiKey = 'Yul3vV8u0jSzwIQSNjVNsu5weoTaAhPB'; 
+    const endpoint = termo ? 'search' : 'trending';
+    const url = `https://api.giphy.com/v1/gifs/${endpoint}?api_key=${apiKey}&q=${termo}&limit=12&rating=g`;
+
+    try {
+        const response = await fetch(url);
+        const { data } = await response.json();
+        gifList.innerHTML = ""; 
+        data.forEach(gif => {
+            const img = document.createElement('img');
+            img.src = gif.images.fixed_height_small.url;
+            img.onclick = () => {
+                enviarMensagem(gif.images.original.url);
+                gifModal.style.display = 'none';
+            };
+            gifList.appendChild(img);
+        });
+    } catch (e) { 
+        console.error("Erro nos GIFs:", e); 
+    }
+}
+
+// 5. Lógica do Microfone (Áudio)
 let mediaRecorder;
 let audioChunks = [];
 
@@ -60,7 +87,9 @@ if (micBtn) {
                 mediaRecorder.start();
                 micBtn.innerText = "🛑";
                 micBtn.style.color = "red";
-            } catch (err) { alert("Ative o microfone!"); }
+            } catch (err) { 
+                alert("Ligue o microfone nas permissões!"); 
+            }
         } else {
             mediaRecorder.stop();
             micBtn.innerText = "🎤";
@@ -69,58 +98,61 @@ if (micBtn) {
     };
 }
 
-// 5. Busca de GIFs
-async function buscarGifs(termo = '') {
-    const apiKey = 'Yul3vV8u0jSzwIQSNjVNsu5weoTaAhPB'; 
-    const endpoint = termo ? 'search' : 'trending';
-    const url = `https://api.giphy.com/v1/gifs/${endpoint}?api_key=${apiKey}&q=${termo}&limit=12&rating=g`;
-
-    try {
-        const response = await fetch(url);
-        const { data } = await response.json();
-        gifList.innerHTML = ""; 
-        data.forEach(gif => {
-            const img = document.createElement('img');
-            img.src = gif.images.fixed_height_small.url;
-            img.onclick = () => {
-                enviarMensagem(gif.images.original.url);
-                gifModal.style.display = 'none';
-            };
-            gifList.appendChild(img);
-        });
-    } catch (e) { console.error("Erro nos GIFs:", e); }
-}
-
-// 6. Exibição em Tempo Real
+// 6. Exibir Mensagens
 database.ref('messages').on('child_added', (snapshot) => {
     const data = snapshot.val();
+    const messageId = snapshot.key;
+    
+    if (data.username !== usuarioAtual && somNotificacao) {
+        somNotificacao.play().catch(() => {});
+    }
+
     const msgDiv = document.createElement('div');
     const souEu = data.username === usuarioAtual;
     msgDiv.className = `message ${souEu ? 'minha-msg' : 'outra-msg'}`;
+    msgDiv.id = `msg-${messageId}`;
 
     let conteudoFinal;
     if (data.text.startsWith('data:audio')) {
-        conteudoFinal = `<audio controls src="${data.text}"></audio>`;
+        conteudoFinal = `<audio controls src="${data.text}" style="width: 200px; height: 35px;"></audio>`;
     } else if (data.text.includes('giphy.com')) {
-        conteudoFinal = `<img src="${data.text}" style="max-width:200px;">`;
+        conteudoFinal = `<img src="${data.text}" style="max-width:200px; border-radius:10px;">`;
     } else {
         conteudoFinal = `<p>${data.text}</p>`;
     }
 
-    msgDiv.innerHTML = `<span class="user-name">${data.username}</span>${conteudoFinal}`;
+    msgDiv.innerHTML = `
+        <span class="user-name">${data.username}</span>
+        ${conteudoFinal}
+        <div class="footer-msg">
+            <span class="time-msg">${data.time || 'Agora'}</span>
+            ${souEu ? `<button class="delete-btn" onclick="apagarMsg('${messageId}')">🗑️</button>` : ""}
+        </div>
+    `;
     chatWindow.appendChild(msgDiv);
     chatWindow.scrollTop = chatWindow.scrollHeight;
 });
 
-// Eventos de clique
-if (gifBtn) gifBtn.onclick = () => {
-    gifModal.style.display = gifModal.style.display === 'none' ? 'block' : 'none';
-    if (gifModal.style.display === 'block') buscarGifs();
-};
+// 7. Eventos Adicionais
+if (gifBtn) {
+    gifBtn.onclick = () => {
+        const visivel = gifModal.style.display === 'block';
+        gifModal.style.display = visivel ? 'none' : 'block';
+        if (!visivel) buscarGifs();
+    };
+}
 
-if (gifSearchInput) gifSearchInput.oninput = (e) => buscarGifs(e.target.value);
+if (gifSearchInput) {
+    gifSearchInput.oninput = (e) => {
+        if (e.target.value.length > 2) buscarGifs(e.target.value);
+    };
+}
 
-if (sendBtn) sendBtn.onclick = () => {
-    enviarMensagem(messageInput.value);
-    messageInput.value = "";
-};
+if (sendBtn) {
+    sendBtn.onclick = () => {
+        if (messageInput.value.trim()) {
+            enviarMensagem(messageInput.value);
+            messageInput.value = "";
+        }
+    };
+}
