@@ -12,7 +12,7 @@ const firebaseConfig = {
 if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
 const database = firebase.database();
 
-// 2. Seleção de Elementos (SEM DUPLICATAS)
+// 2. Seleção de Elementos
 const messageInput = document.getElementById('message-input');
 const sendBtn = document.getElementById('send-btn');
 const chatWindow = document.getElementById('chat-window');
@@ -26,7 +26,7 @@ const onlineCountSpan = document.getElementById('online-count');
 
 let usuarioAtual = prompt("Qual é o seu nome?") || "Visitante";
 
-// 3. Função de Envio
+// 3. Função de Enviar
 function enviarMensagem(conteudo) {
     if (!conteudo) return;
     const agora = new Date();
@@ -39,7 +39,7 @@ function enviarMensagem(conteudo) {
     });
 }
 
-// 4. Lógica do Microfone (Consertada)
+// 4. Lógica do Microfone (CORRIGIDA)
 let mediaRecorder;
 let audioChunks = [];
 
@@ -60,7 +60,7 @@ if (micBtn) {
                 mediaRecorder.start();
                 micBtn.innerText = "🛑";
                 micBtn.style.color = "red";
-            } catch (err) { alert("Ative o microfone!"); }
+            } catch (err) { alert("Permita o uso do microfone!"); }
         } else {
             mediaRecorder.stop();
             micBtn.innerText = "🎤";
@@ -69,12 +69,46 @@ if (micBtn) {
     };
 }
 
-// 5. Busca de GIFs
+// 5. Exibir Mensagens (Com Player de Áudio)
+database.ref('messages').on('child_added', (snapshot) => {
+    const data = snapshot.val();
+    const messageId = snapshot.key;
+    
+    if (data.username !== usuarioAtual && somNotificacao) {
+        somNotificacao.play().catch(() => {});
+    }
+
+    const msgDiv = document.createElement('div');
+    const souEu = data.username === usuarioAtual;
+    msgDiv.className = `message ${souEu ? 'minha-msg' : 'outra-msg'}`;
+    msgDiv.id = `msg-${messageId}`;
+
+    let conteudoFinal;
+    if (data.text.startsWith('data:audio')) {
+        conteudoFinal = `<audio controls src="${data.text}" style="width: 200px; height: 35px;"></audio>`;
+    } else if (data.text.includes('giphy.com')) {
+        conteudoFinal = `<img src="${data.text}" style="max-width:200px; border-radius:10px;">`;
+    } else {
+        conteudoFinal = `<p>${data.text}</p>`;
+    }
+
+    msgDiv.innerHTML = `
+        <span class="user-name">${data.username}</span>
+        ${conteudoFinal}
+        <div class="footer-msg">
+            <span class="time-msg">${data.time || 'Agora'}</span>
+            ${souEu ? `<button class="delete-btn" onclick="database.ref('messages/${messageId}').remove()">🗑️</button>` : ""}
+        </div>
+    `;
+    chatWindow.appendChild(msgDiv);
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+});
+
+// 6. Lógica de GIFs e Envio
 async function buscarGifs(termo = '') {
     const apiKey = 'Yul3vV8u0jSzwIQSNjVNsu5weoTaAhPB'; 
     const endpoint = termo ? 'search' : 'trending';
     const url = `https://api.giphy.com/v1/gifs/${endpoint}?api_key=${apiKey}&q=${termo}&limit=12&rating=g`;
-
     try {
         const response = await fetch(url);
         const { data } = await response.json();
@@ -82,43 +116,12 @@ async function buscarGifs(termo = '') {
         data.forEach(gif => {
             const img = document.createElement('img');
             img.src = gif.images.fixed_height_small.url;
-            img.onclick = () => {
-                enviarMensagem(gif.images.original.url);
-                gifModal.style.display = 'none';
-            };
+            img.onclick = () => { enviarMensagem(gif.images.original.url); gifModal.style.display = 'none'; };
             gifList.appendChild(img);
         });
-    } catch (e) { console.error("Erro nos GIFs:", e); }
+    } catch (e) { console.error(e); }
 }
 
-// 6. Exibição das Mensagens (Áudio e GIF)
-database.ref('messages').on('child_added', (snapshot) => {
-    const data = snapshot.val();
-    const msgDiv = document.createElement('div');
-    const souEu = data.username === usuarioAtual;
-    msgDiv.className = `message ${souEu ? 'minha-msg' : 'outra-msg'}`;
-
-    let conteudoFinal;
-    if (data.text.startsWith('data:audio')) {
-        conteudoFinal = `<audio controls src="${data.text}"></audio>`; //
-    } else if (data.text.includes('giphy.com')) {
-        conteudoFinal = `<img src="${data.text}" style="max-width:200px;">`;
-    } else {
-        conteudoFinal = `<p>${data.text}</p>`;
-    }
-
-    msgDiv.innerHTML = `<span class="user-name">${data.username}</span>${conteudoFinal}`;
-    chatWindow.appendChild(msgDiv);
-    chatWindow.scrollTop = chatWindow.scrollHeight;
-});
-
-// Eventos
-if (gifBtn) gifBtn.onclick = () => {
-    gifModal.style.display = gifModal.style.display === 'none' ? 'block' : 'none';
-    if (gifModal.style.display === 'block') buscarGifs();
-};
+if (gifBtn) gifBtn.onclick = () => gifModal.style.display = gifModal.style.display === 'block' ? 'none' : 'block';
 if (gifSearchInput) gifSearchInput.oninput = (e) => buscarGifs(e.target.value);
-if (sendBtn) sendBtn.onclick = () => {
-    enviarMensagem(messageInput.value);
-    messageInput.value = "";
-};
+if (sendBtn) sendBtn.onclick = () => { if (messageInput.value.trim()) { enviarMensagem(messageInput.value); messageInput.value = ""; } };
