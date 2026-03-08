@@ -1,4 +1,4 @@
-// 1. Configuração do Firebase
+// 1. Configuração (Usando suas chaves das imagens)
 const firebaseConfig = {
     apiKey: "AIzaSyAT3yJEb0VYpz-KEydMJ5Ug4rvPnTbPcf0",
     authDomain: "meuchatbora.firebaseapp.com",
@@ -12,78 +12,70 @@ const firebaseConfig = {
 if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
 const database = firebase.database();
 
-// 2. Seleção de Elementos (SEM DUPLICATAS)
+// 2. Elementos (Declarados UMA única vez)
 const messageInput = document.getElementById('message-input');
 const sendBtn = document.getElementById('send-btn');
 const chatWindow = document.getElementById('chat-window');
+const micBtn = document.getElementById('mic-btn');
 const gifBtn = document.getElementById('gif-btn');
 const gifModal = document.getElementById('gif-modal');
 const gifList = document.getElementById('gif-list');
-const gifSearchInput = document.getElementById('gif-search'); 
-const micBtn = document.getElementById('mic-btn');
+const gifSearch = document.getElementById('gif-search');
 
-let usuarioAtual = prompt("Qual é o seu nome?") || "Visitante";
+let usuarioAtual = prompt("Qual seu nome?") || "Anônimo";
 
-// 3. Função de Envio
-function enviarMensagem(conteudo) {
+// 3. Enviar Mensagem
+function enviar(conteudo) {
     if (!conteudo) return;
-    const agora = new Date();
-    const hora = agora.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-    
     database.ref('messages').push({
-        username: usuarioAtual,
-        text: conteudo,
-        time: hora
+        nome: usuarioAtual,
+        texto: conteudo,
+        hora: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
     });
 }
 
-// 4. Lógica do Microfone (CORRIGIDA)
+// 4. Áudio (Lógica corrigida)
 let mediaRecorder;
 let audioChunks = [];
 
-if (micBtn) {
-    micBtn.onclick = async () => {
-        if (!mediaRecorder || mediaRecorder.state === "inactive") {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(stream);
-                audioChunks = [];
-                mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);
-                mediaRecorder.onstop = () => {
-                    const audioBlob = new Blob(audioChunks, { type: 'audio/mpeg' });
-                    const reader = new FileReader();
-                    reader.readAsDataURL(audioBlob); 
-                    reader.onloadend = () => enviarMensagem(reader.result);
-                };
-                mediaRecorder.start();
-                micBtn.innerText = "🛑";
-                micBtn.style.color = "red";
-            } catch (err) { alert("Ative o microfone nas permissões!"); }
-        } else {
-            mediaRecorder.stop();
-            micBtn.innerText = "🎤";
-            micBtn.style.color = "";
-        }
-    };
-}
-
-// 5. Exibir Mensagens (GIF e Áudio)
-database.ref('messages').on('child_added', (snapshot) => {
-    const data = snapshot.val();
-    const msgDiv = document.createElement('div');
-    const souEu = data.username === usuarioAtual;
-    msgDiv.className = `message ${souEu ? 'minha-msg' : 'outra-msg'}`;
-
-    let conteudoFinal;
-    if (data.text.startsWith('data:audio')) {
-        conteudoFinal = `<audio controls src="${data.text}" style="width: 200px; height: 35px;"></audio>`;
-    } else if (data.text.includes('giphy.com')) {
-        conteudoFinal = `<img src="${data.text}" style="max-width:200px; border-radius:10px;">`;
+micBtn.onclick = async () => {
+    if (!mediaRecorder || mediaRecorder.state === "inactive") {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
+        mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+        mediaRecorder.onstop = () => {
+            const blob = new Blob(audioChunks, { type: 'audio/mpeg' });
+            const reader = new FileReader();
+            reader.readAsDataURL(blob);
+            reader.onloadend = () => enviar(reader.result);
+        };
+        mediaRecorder.start();
+        micBtn.innerText = "🛑";
     } else {
-        conteudoFinal = `<p>${data.text}</p>`;
+        mediaRecorder.stop();
+        micBtn.innerText = "🎤";
     }
+};
 
-    msgDiv.innerHTML = `<span class="user-name">${data.username}</span>${conteudoFinal}`;
-    chatWindow.appendChild(msgDiv);
+// 5. Receber Mensagens
+database.ref('messages').on('child_added', snap => {
+    const data = snap.val();
+    const div = document.createElement('div');
+    div.className = `message ${data.nome === usuarioAtual ? 'minha-msg' : 'outra-msg'}`;
+    
+    if (data.texto.startsWith('data:audio')) {
+        div.innerHTML = `<strong>${data.nome}</strong><br><audio controls src="${data.texto}" style="width:200px"></audio>`;
+    } else if (data.texto.includes('giphy.com')) {
+        div.innerHTML = `<strong>${data.nome}</strong><br><img src="${data.texto}" style="width:150px">`;
+    } else {
+        div.innerHTML = `<strong>${data.nome}</strong><br>${data.texto}`;
+    }
+    
+    chatWindow.appendChild(div);
     chatWindow.scrollTop = chatWindow.scrollHeight;
 });
+
+// 6. Botão Enviar e GIFs
+sendBtn.onclick = () => { enviar(messageInput.value); messageInput.value = ""; };
+gifBtn.onclick = () => { gifModal.style.display = gifModal.style.display === 'none' ? 'block' : 'none'; };
