@@ -12,27 +12,21 @@ const firebaseConfig = {
 if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
 const database = firebase.database();
 
-// 2. Seleção de Elementos
+// 2. Seleção de Elementos (Uma única vez para evitar erros)
 const messageInput = document.getElementById('message-input');
 const sendBtn = document.getElementById('send-btn');
 const chatWindow = document.getElementById('chat-window');
 const gifBtn = document.getElementById('gif-btn');
 const gifModal = document.getElementById('gif-modal');
 const gifList = document.getElementById('gif-list');
-const gifSearchInput = document.getElementById('gif-search'); // ID corrigido conforme o novo HTML
+const gifSearchInput = document.getElementById('gif-search'); 
 const somNotificacao = document.getElementById('notificacao-som');
 const micBtn = document.getElementById('mic-btn');
-const clearBtn = document.getElementById('clear-chat-btn');
 const onlineCountSpan = document.getElementById('online-count');
 
 let usuarioAtual = prompt("Qual é o seu nome?") || "Visitante";
 
-// Mostrar botão ADM
-if (usuarioAtual === "Admin-Hells~" && clearBtn) {
-    clearBtn.style.display = "block";
-}
-
-// 3. Funções de Enviar
+// 3. Funções de Envio
 function enviarMensagem(conteudo) {
     if (!conteudo) return;
     const agora = new Date();
@@ -45,7 +39,29 @@ function enviarMensagem(conteudo) {
     });
 }
 
-// 4. Lógica do Microfone (Áudio)
+// 4. Lógica de GIFs
+async function buscarGifs(termo = '') {
+    const apiKey = 'Yul3vV8u0jSzwIQSNjVNsu5weoTaAhPB'; 
+    const endpoint = termo ? 'search' : 'trending';
+    const url = `https://api.giphy.com/v1/gifs/${endpoint}?api_key=${apiKey}&q=${termo}&limit=12&rating=g`;
+
+    try {
+        const response = await fetch(url);
+        const { data } = await response.json();
+        gifList.innerHTML = ""; 
+        data.forEach(gif => {
+            const img = document.createElement('img');
+            img.src = gif.images.fixed_height_small.url;
+            img.onclick = () => {
+                enviarMensagem(gif.images.original.url);
+                gifModal.style.display = 'none';
+            };
+            gifList.appendChild(img);
+        });
+    } catch (e) { console.error("Erro nos GIFs:", e); }
+}
+
+// 5. Lógica do Microfone
 let mediaRecorder;
 let audioChunks = [];
 
@@ -66,9 +82,7 @@ if (micBtn) {
                 mediaRecorder.start();
                 micBtn.innerText = "🛑";
                 micBtn.style.color = "red";
-            } catch (err) {
-                alert("Permita o uso do microfone!");
-            }
+            } catch (err) { alert("Ligue o microfone!"); }
         } else {
             mediaRecorder.stop();
             micBtn.innerText = "🎤";
@@ -77,12 +91,11 @@ if (micBtn) {
     };
 }
 
-// 5. Exibir Mensagens em Tempo Real
+// 6. Exibir Mensagens (GIF, Áudio e Texto)
 database.ref('messages').on('child_added', (snapshot) => {
     const data = snapshot.val();
     const messageId = snapshot.key;
     
-    // Tocar som se for de outro usuário
     if (data.username !== usuarioAtual && somNotificacao) {
         somNotificacao.play().catch(() => {});
     }
@@ -92,7 +105,6 @@ database.ref('messages').on('child_added', (snapshot) => {
     msgDiv.className = `message ${souEu ? 'minha-msg' : 'outra-msg'}`;
     msgDiv.id = `msg-${messageId}`;
 
-    // Identificar tipo de conteúdo (GIF, Áudio ou Texto)
     let conteudoFinal;
     if (data.text.startsWith('data:audio')) {
         conteudoFinal = `<audio controls src="${data.text}" style="width: 200px; height: 35px;"></audio>`;
@@ -102,26 +114,21 @@ database.ref('messages').on('child_added', (snapshot) => {
         conteudoFinal = `<p>${data.text}</p>`;
     }
 
-    const botaoApagar = souEu ? `<button class="delete-btn" onclick="apagarMinhaMensagem('${messageId}')">🗑️</button>` : "";
-
     msgDiv.innerHTML = `
         <span class="user-name">${data.username}</span>
         ${conteudoFinal}
         <div class="footer-msg">
             <span class="time-msg">${data.time || 'Agora'}</span>
-            ${botaoApagar}
+            ${souEu ? `<button class="delete-btn" onclick="apagarMinhaMensagem('${messageId}')">🗑️</button>` : ""}
         </div>
     `;
-    
     chatWindow.appendChild(msgDiv);
     chatWindow.scrollTop = chatWindow.scrollHeight;
 });
 
-// 6. Apagar Mensagens
+// 7. Apagar e Status Online
 window.apagarMinhaMensagem = (id) => {
-    if (confirm("Deseja apagar sua mensagem?")) {
-        database.ref('messages/' + id).remove();
-    }
+    if (confirm("Apagar?")) database.ref('messages/' + id).remove();
 };
 
 database.ref('messages').on('child_removed', (snapshot) => {
@@ -129,13 +136,6 @@ database.ref('messages').on('child_removed', (snapshot) => {
     if (elemento) elemento.remove();
 });
 
-if (clearBtn) {
-    clearBtn.onclick = () => {
-        if (confirm("Apagar todo o histórico?")) database.ref('messages').remove();
-    };
-}
-
-// 7. Contador Online
 const userStatusRef = database.ref('status/' + usuarioAtual.replace(/[.#$[\]]/g, "_"));
 database.ref(".info/connected").on("value", (snapshot) => {
     if (snapshot.val() === true) {
@@ -147,10 +147,18 @@ database.ref('status').on('value', (snapshot) => {
     if (onlineCountSpan) onlineCountSpan.innerText = snapshot.numChildren();
 });
 
-// 8. GIFs e Envio de Texto
+// 8. Eventos Finais
 if (gifBtn) {
     gifBtn.onclick = () => {
-        gifModal.style.display = gifModal.style.display === 'block' ? 'none' : 'block';
+        const visivel = gifModal.style.display === 'block';
+        gifModal.style.display = visivel ? 'none' : 'block';
+        if (!visivel) buscarGifs();
+    };
+}
+
+if (gifSearchInput) {
+    gifSearchInput.oninput = (e) => {
+        if (e.target.value.length > 2) buscarGifs(e.target.value);
     };
 }
 
