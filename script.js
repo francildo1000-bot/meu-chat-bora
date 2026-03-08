@@ -12,7 +12,7 @@ const firebaseConfig = {
 if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
 const database = firebase.database();
 
-// 2. Seleção de Elementos (Uma única vez para evitar erros)
+// 2. Seleção de Elementos (SEM DUPLICATAS)
 const messageInput = document.getElementById('message-input');
 const sendBtn = document.getElementById('send-btn');
 const chatWindow = document.getElementById('chat-window');
@@ -39,29 +39,7 @@ function enviarMensagem(conteudo) {
     });
 }
 
-// 4. Lógica de GIFs
-async function buscarGifs(termo = '') {
-    const apiKey = 'Yul3vV8u0jSzwIQSNjVNsu5weoTaAhPB'; 
-    const endpoint = termo ? 'search' : 'trending';
-    const url = `https://api.giphy.com/v1/gifs/${endpoint}?api_key=${apiKey}&q=${termo}&limit=12&rating=g`;
-
-    try {
-        const response = await fetch(url);
-        const { data } = await response.json();
-        gifList.innerHTML = ""; 
-        data.forEach(gif => {
-            const img = document.createElement('img');
-            img.src = gif.images.fixed_height_small.url;
-            img.onclick = () => {
-                enviarMensagem(gif.images.original.url);
-                gifModal.style.display = 'none';
-            };
-            gifList.appendChild(img);
-        });
-    } catch (e) { console.error("Erro nos GIFs:", e); }
-}
-
-// 5. Lógica do Microfone
+// 4. Lógica do Microfone
 let mediaRecorder;
 let audioChunks = [];
 
@@ -91,7 +69,29 @@ if (micBtn) {
     };
 }
 
-// 6. Exibir Mensagens (GIF, Áudio e Texto)
+// 5. Lógica de GIFs
+async function buscarGifs(termo = '') {
+    const apiKey = 'Yul3vV8u0jSzwIQSNjVNsu5weoTaAhPB'; 
+    const endpoint = termo ? 'search' : 'trending';
+    const url = `https://api.giphy.com/v1/gifs/${endpoint}?api_key=${apiKey}&q=${termo}&limit=12&rating=g`;
+
+    try {
+        const response = await fetch(url);
+        const { data } = await response.json();
+        gifList.innerHTML = ""; 
+        data.forEach(gif => {
+            const img = document.createElement('img');
+            img.src = gif.images.fixed_height_small.url;
+            img.onclick = () => {
+                enviarMensagem(gif.images.original.url);
+                gifModal.style.display = 'none';
+            };
+            gifList.appendChild(img);
+        });
+    } catch (e) { console.error("Erro nos GIFs:", e); }
+}
+
+// 6. Exibir Mensagens
 database.ref('messages').on('child_added', (snapshot) => {
     const data = snapshot.val();
     const messageId = snapshot.key;
@@ -126,7 +126,7 @@ database.ref('messages').on('child_added', (snapshot) => {
     chatWindow.scrollTop = chatWindow.scrollHeight;
 });
 
-// 7. Apagar e Status Online
+// 7. Apagar Mensagens e Status Online
 window.apagarMinhaMensagem = (id) => {
     if (confirm("Apagar?")) database.ref('messages/' + id).remove();
 };
@@ -147,7 +147,7 @@ database.ref('status').on('value', (snapshot) => {
     if (onlineCountSpan) onlineCountSpan.innerText = snapshot.numChildren();
 });
 
-// 8. Eventos Finais
+// 8. Eventos de Interface
 if (gifBtn) {
     gifBtn.onclick = () => {
         const visivel = gifModal.style.display === 'block';
