@@ -8,71 +8,33 @@
 </head>
 <body>
     <header>
-    <h1>Bora PROZEAR! 🚀</h1>
-    <div id="status-container">
-        🟢 <span id="online-count">0</span> online
-    </div>
-</header>
-
-<div id="chat-container">
-    <div id="chat-window"></div>
-    
-    <div class="input-area">
-        <button id="gif-btn">GIF</button>
-        <button id="mic-btn" type="button">🎤</button>
-        <input type="text" id="message-input" placeholder="Digite uma mensagem...">
-        <button id="send-btn">Enviar</button>
-    </div>
-</div>
-
-<div id="gif-modal">
-    <input type="text" id="gif-search" placeholder="Buscar GIF...">
-    <div id="gif-list"></div>
-</div>
-
-<script src="script.js"></script>
-</header>
-        
-        <div id="chat-window"></div>
-
-        <div id="gif-modal">
-            <input type="text" id="gif-search-input" placeholder="Pesquisar GIFs...">
-            <div id="gif-list"></div>
+        <h1>Bora PROZEAR! 🚀</h1>
+        <div id="status-container">
+            🟢 <span id="online-count">0</span> online
         </div>
+    </header>
 
-       <div class="input-area">
-    <button id="gif-btn">GIF</button>
-    
-    <button id="mic-btn" type="button" style="background: none; border: none; font-size: 20px; cursor: pointer;">🎤</button>
-    
-    <input type="text" id="message-input" placeholder="Digite uma mensagem...">
-    <button id="send-btn">Enviar</button>
-</div>
+    <div id="chat-container">
+        <div id="chat-window"></div>
+        
+        <div class="input-area">
+            <button id="gif-btn">GIF</button>
+            <button id="mic-btn" type="button">🎤</button>
+            <input type="text" id="message-input" placeholder="Digite uma mensagem...">
+            <button id="send-btn">Enviar</button>
+        </div>
+    </div>
+
+    <div id="gif-modal" style="display:none;">
+        <input type="text" id="gif-search" placeholder="Buscar GIF...">
+        <div id="gif-list"></div>
+    </div>
+
+    <audio id="notificacao-som" src="https://www.soundjay.com/buttons/sounds/button-3.mp3" preload="auto"></audio>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
     <script src="script.js"></script>
 </body>
-<audio id="notificacao-som" src="https://www.soundjay.com/buttons/sounds/button-3.mp3" preload="auto"></audio>
 </html>
-<div class="input-area">
-    <button id="gif-btn">GIF</button>
-    
-    <button id="mic-btn" type="button" style="display: inline-block !important; background: none; border: none; font-size: 20px; cursor: pointer;">🎤</button>
-    
-    <input type="text" id="message-input" placeholder="Digite uma mensagem...">
-    <button id="send-btn">Enviar</button>
-</div>
-<header>
-    <header>
-    <h1>Bora PROZEAR! 🚀</h1>
-    <div id="status-container" style="display: block !important; color: #00a884;">
-        🟢 <span id="online-count">0</span> online
-    </div>
-</header>
-<div class="input-area">
-    <button id="gif-btn">GIF</button>
-    <button id="mic-btn" style="background: none; border: none; cursor: pointer; font-size: 20px;">🎤</button>
-    <input type="text" id="message-input" placeholder="Digite uma mensagem...">
-    <button id="send-btn">Enviar</button>
-</div>

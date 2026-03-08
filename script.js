@@ -19,11 +19,20 @@ const chatWindow = document.getElementById('chat-window');
 const gifBtn = document.getElementById('gif-btn');
 const gifModal = document.getElementById('gif-modal');
 const gifList = document.getElementById('gif-list');
-const gifSearchInput = document.getElementById('gif-search-input');
+const gifSearchInput = document.getElementById('gif-search'); // ID corrigido conforme o novo HTML
+const somNotificacao = document.getElementById('notificacao-som');
+const micBtn = document.getElementById('mic-btn');
+const clearBtn = document.getElementById('clear-chat-btn');
+const onlineCountSpan = document.getElementById('online-count');
 
 let usuarioAtual = prompt("Qual é o seu nome?") || "Visitante";
 
-// 3. Função de Enviar (Texto ou link de GIF)
+// Mostrar botão ADM
+if (usuarioAtual === "Admin-Hells~" && clearBtn) {
+    clearBtn.style.display = "block";
+}
+
+// 3. Funções de Enviar
 function enviarMensagem(conteudo) {
     if (!conteudo) return;
     const agora = new Date();
@@ -32,89 +41,72 @@ function enviarMensagem(conteudo) {
     database.ref('messages').push({
         username: usuarioAtual,
         text: conteudo,
-        time: hora // Garante que não apareça "undefined"
+        time: hora
     });
 }
 
-// 4. Busca de GIFs (Ajustada para funcionar no seu layout)
-async function buscarGifs(termo = '') {
-    const lista = document.getElementById('gif-list');
-    if (!lista) return;
+// 4. Lógica do Microfone (Áudio)
+let mediaRecorder;
+let audioChunks = [];
 
-    // COLOQUE SUA CHAVE NOVA AQUI DENTRO DAS ASPAS
-    const apiKey = 'Yul3vV8u0jSzwIQSNjVNsu5weoTaAhPB'; 
-    const endpoint = termo ? 'search' : 'trending';
-    const url = `https://api.giphy.com/v1/gifs/${endpoint}?api_key=${apiKey}&q=${termo}&limit=12&rating=g`;
-
-    try {
-        const response = await fetch(url);
-        if (!response.ok) throw new Error('Erro na API'); // Pega o erro 403 se a chave estiver ruim
-        
-        const { data } = await response.json();
-        lista.innerHTML = ""; 
-
-        data.forEach(gif => {
-            const img = document.createElement('img');
-            img.src = gif.images.fixed_height_small.url;
-            img.onclick = () => {
-                enviarMensagem(gif.images.original.url);
-                document.getElementById('gif-modal').style.display = 'none';
-            };
-            lista.appendChild(img);
-        });
-    } catch (e) { 
-        console.error("Erro na busca:", e);
-        lista.innerHTML = "<p style='color:red; font-size:12px;'>Erro ao carregar. Verifique sua chave API.</p>";
-    }
-}
-
-// 5. Eventos de Interface
-if (gifBtn) {
-    gifBtn.onclick = () => {
-        const visivel = gifModal.style.display === 'block';
-        gifModal.style.display = visivel ? 'none' : 'block';
-        if (!visivel) buscarGifs(); // Carrega os trending ao abrir
-    };
-}
-
-if (gifSearchInput) {
-    gifSearchInput.oninput = (e) => {
-        const valor = e.target.value.trim();
-        if (valor.length > 2) {
-            buscarGifs(valor); // Dispara a busca enquanto digita
+if (micBtn) {
+    micBtn.onclick = async () => {
+        if (!mediaRecorder || mediaRecorder.state === "inactive") {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+                mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);
+                mediaRecorder.onstop = () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/mpeg' });
+                    const reader = new FileReader();
+                    reader.readAsDataURL(audioBlob); 
+                    reader.onloadend = () => enviarMensagem(reader.result);
+                };
+                mediaRecorder.start();
+                micBtn.innerText = "🛑";
+                micBtn.style.color = "red";
+            } catch (err) {
+                alert("Permita o uso do microfone!");
+            }
+        } else {
+            mediaRecorder.stop();
+            micBtn.innerText = "🎤";
+            micBtn.style.color = "";
         }
     };
 }
 
-if (sendBtn) {
-    sendBtn.onclick = () => {
-        if (messageInput.value.trim() !== "") {
-            enviarMensagem(messageInput.value);
-            messageInput.value = "";
-        }
-    };
-}
-
-// 6. Exibir Mensagens em Tempo Real
+// 5. Exibir Mensagens em Tempo Real
 database.ref('messages').on('child_added', (snapshot) => {
     const data = snapshot.val();
-    const messageId = snapshot.key; // Pega o ID único da mensagem
-    if (!chatWindow) return;
+    const messageId = snapshot.key;
+    
+    // Tocar som se for de outro usuário
+    if (data.username !== usuarioAtual && somNotificacao) {
+        somNotificacao.play().catch(() => {});
+    }
 
     const msgDiv = document.createElement('div');
     const souEu = data.username === usuarioAtual;
     msgDiv.className = `message ${souEu ? 'minha-msg' : 'outra-msg'}`;
-    msgDiv.id = `msg-${messageId}`; // Define o ID na lixeira
+    msgDiv.id = `msg-${messageId}`;
 
-    const ehGif = data.text.includes('giphy.com');
-    const conteudo = ehGif ? `<img src="${data.text}" style="max-width:200px; border-radius:10px;">` : `<p>${data.text}</p>`;
+    // Identificar tipo de conteúdo (GIF, Áudio ou Texto)
+    let conteudoFinal;
+    if (data.text.startsWith('data:audio')) {
+        conteudoFinal = `<audio controls src="${data.text}" style="width: 200px; height: 35px;"></audio>`;
+    } else if (data.text.includes('giphy.com')) {
+        conteudoFinal = `<img src="${data.text}" style="max-width:200px; border-radius:10px;">`;
+    } else {
+        conteudoFinal = `<p>${data.text}</p>`;
+    }
 
-    // Só adiciona o botão de apagar se a mensagem for do usuário atual
     const botaoApagar = souEu ? `<button class="delete-btn" onclick="apagarMinhaMensagem('${messageId}')">🗑️</button>` : "";
 
     msgDiv.innerHTML = `
         <span class="user-name">${data.username}</span>
-        ${conteudo}
+        ${conteudoFinal}
         <div class="footer-msg">
             <span class="time-msg">${data.time || 'Agora'}</span>
             ${botaoApagar}
@@ -123,127 +115,50 @@ database.ref('messages').on('child_added', (snapshot) => {
     
     chatWindow.appendChild(msgDiv);
     chatWindow.scrollTop = chatWindow.scrollHeight;
-    
 });
-const clearBtn = document.getElementById('clear-chat-btn');
 
-// Verifica se o usuário é Admin para mostrar o botão
-if (usuarioAtual === "Admin-Hells~") {
-    clearBtn.style.display = "block";
-}
-
-// Função para apagar o banco de dados
-if (clearBtn) {
-    clearBtn.onclick = () => {
-        if (confirm("Deseja mesmo apagar todo o histórico de mensagens?")) {
-            database.ref('messages').remove();
-            location.reload(); // Recarrega para limpar a tela
-        }
-    };
-}
+// 6. Apagar Mensagens
 window.apagarMinhaMensagem = (id) => {
     if (confirm("Deseja apagar sua mensagem?")) {
         database.ref('messages/' + id).remove();
-        // Remove visualmente da tela na hora
-        const elemento = document.getElementById(`msg-${id}`);
-        if (elemento) elemento.remove();
     }
 };
 
-// Adicione isso para que, se outro usuário apagar, suma da sua tela também
 database.ref('messages').on('child_removed', (snapshot) => {
     const elemento = document.getElementById(`msg-${snapshot.key}`);
     if (elemento) elemento.remove();
 });
-// No início do script.js, selecione o elemento
-const somNotificacao = document.getElementById('notificacao-som');
 
-// Dentro do database.ref('messages').on('child_added', (snapshot) => { ...
-database.ref('messages').on('child_added', (snapshot) => {
-    const data = snapshot.val();
-    
-    // Tocar o som apenas se a mensagem NÃO for sua (para não irritar)
-    if (data.username !== usuarioAtual && somNotificacao) {
-        somNotificacao.play().catch(e => console.log("Áudio bloqueado: clique na página primeiro."));
-    }
+if (clearBtn) {
+    clearBtn.onclick = () => {
+        if (confirm("Apagar todo o histórico?")) database.ref('messages').remove();
+    };
+}
 
-    // ... (restante do seu código que cria a msgDiv)
-});
-// Referências para o contador
-const onlineCountSpan = document.getElementById('online-count');
-const userStatusRef = database.ref('status/' + usuarioAtual.replace(/[.#$[\]]/g, "_")); // Limpa caracteres especiais do nome
-
-// 1. Detecta conexão com o Firebase
+// 7. Contador Online
+const userStatusRef = database.ref('status/' + usuarioAtual.replace(/[.#$[\]]/g, "_"));
 database.ref(".info/connected").on("value", (snapshot) => {
     if (snapshot.val() === true) {
-        // Quando eu desconectar, o Firebase apaga meu registro automaticamente!
         userStatusRef.onDisconnect().remove();
-        
-        // Marca que estou online agora
         userStatusRef.set(true);
     }
 });
-
-// 2. Escuta mudanças na lista de online para atualizar o contador na tela
 database.ref('status').on('value', (snapshot) => {
-    const totalOnline = snapshot.numChildren();
-    if (onlineCountSpan) {
-        onlineCountSpan.innerText = totalOnline;
-    }
+    if (onlineCountSpan) onlineCountSpan.innerText = snapshot.numChildren();
 });
-let mediaRecorder;
-let audioChunks = [];
-const micBtn = document.getElementById('mic-btn');
 
-micBtn.onclick = async () => {
-    if (!mediaRecorder || mediaRecorder.state === "inactive") {
-        // Iniciar Gravação
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        mediaRecorder = new MediaRecorder(stream);
-        audioChunks = [];
-
-        mediaRecorder.ondataavailable = (event) => audioChunks.push(event.data);
-        
-        mediaRecorder.onstop = async () => {
-            const audioBlob = new Blob(audioChunks, { type: 'audio/mpeg' });
-            const reader = new FileReader();
-            reader.readAsDataURL(audioBlob); 
-            reader.onloadend = () => {
-                const base64Audio = reader.result;
-                enviarMensagem(base64Audio, "audio"); // Envia o áudio como texto Base64
-            };
-        };
-
-        mediaRecorder.start();
-        micBtn.innerText = "🛑"; // Muda o ícone enquanto grava
-        micBtn.style.color = "red";
-    } else {
-        // Parar Gravação
-        mediaRecorder.stop();
-        micBtn.innerText = "🎤";
-        micBtn.style.color = "";
-    }
-};
-// Dentro do database.ref('messages').on('child_added', ...)
-const ehAudio = data.text.startsWith('data:audio');
-const ehGif = data.text.includes('giphy.com');
-
-let conteudo;
-if (ehAudio) {
-    conteudo = `<audio controls src="${data.text}" style="width: 200px; height: 30px;"></audio>`;
-} else if (ehGif) {
-    conteudo = `<img src="${data.text}" style="max-width:200px; border-radius:10px;">`;
-} else {
-    conteudo = `<p>${data.text}</p>`;
-}
-// Substitua a parte do micBtn.onclick por esta:
-const micBtn = document.getElementById('mic-btn');
-
-if (micBtn) { // Só executa se o botão existir no HTML
-    micBtn.onclick = async () => {
-        // ... (seu código de gravação que mandei antes)
-        console.log("Botão de microfone clicado!");
+// 8. GIFs e Envio de Texto
+if (gifBtn) {
+    gifBtn.onclick = () => {
+        gifModal.style.display = gifModal.style.display === 'block' ? 'none' : 'block';
     };
-} else {
-    console.error("Erro: O elemento 'mic-btn' não foi encontrado no HTML.");
+}
+
+if (sendBtn) {
+    sendBtn.onclick = () => {
+        if (messageInput.value.trim()) {
+            enviarMensagem(messageInput.value);
+            messageInput.value = "";
+        }
+    };
 }

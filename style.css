@@ -7,7 +7,7 @@
 }
 
 body {
-    background-color: #0b141a; /* Fundo escuro oficial */
+    background-color: #0b141a;
     color: white;
     height: 100vh;
     overflow: hidden;
@@ -23,12 +23,22 @@ body {
     background-color: #0b141a;
 }
 
-/* 2. Cabeçalho */
+/* 2. Cabeçalho e Status */
 header {
     background: #202c33;
     padding: 15px;
     text-align: center;
     border-bottom: 1px solid #313d45;
+}
+
+#status-container {
+    margin-top: 8px;
+    background: rgba(0, 168, 132, 0.2);
+    padding: 4px 12px;
+    border-radius: 20px;
+    display: inline-block;
+    font-size: 13px;
+    color: #00a884;
 }
 
 /* 3. Janela de Mensagens */
@@ -38,29 +48,50 @@ header {
     padding: 20px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
+    background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); /* Pattern do WhatsApp */
+    background-blend-mode: overlay;
 }
 
-/* 4. Balões de Mensagem (Resolve o desalinhamento) */
 .message {
     max-width: 80%;
     padding: 8px 12px;
     border-radius: 8px;
     position: relative;
     font-size: 0.95rem;
+    word-wrap: break-word;
 }
 
 .minha-msg { align-self: flex-end; background: #005c4b; }
 .outra-msg { align-self: flex-start; background: #202c33; }
 
 .user-name { display: block; font-size: 0.75rem; color: #ffd700; font-weight: bold; margin-bottom: 3px; }
-.time-msg { display: block; font-size: 0.65rem; text-align: right; opacity: 0.6; margin-top: 4px; }
 
-/* 5. MODAL DE GIF (O SEU ERRO ESTÁ AQUI!) */
+.footer-msg {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 5px;
+}
+
+.time-msg { font-size: 0.65rem; opacity: 0.6; }
+
+.delete-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+    opacity: 0.5;
+    transition: 0.3s;
+}
+
+.delete-btn:hover { opacity: 1; transform: scale(1.2); }
+
+/* 4. Modal de GIFs */
 #gif-modal {
-    display: none; /* Começa escondido */
+    display: none;
     position: absolute;
-    bottom: 70px; /* Acima da barra de digitar */
+    bottom: 70px;
     left: 10px;
     right: 10px;
     background: #232d36;
@@ -70,7 +101,7 @@ header {
     z-index: 999;
 }
 
-#gif-search-input {
+#gif-search {
     width: 100%;
     padding: 10px;
     background: #2a3942;
@@ -80,24 +111,23 @@ header {
     margin-bottom: 10px;
 }
 
-/* Grade de GIFs - Organiza os quadradinhos */
 #gif-list {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 8px;
-    max-height: 250px;
+    max-height: 200px;
     overflow-y: auto;
 }
 
 #gif-list img {
     width: 100%;
-    height: 85px;
+    height: 80px;
     object-fit: cover;
     border-radius: 5px;
     cursor: pointer;
 }
 
-/* 6. Barra de Input Rodapé */
+/* 5. Barra de Input (Rodapé) */
 .input-area {
     background: #202c33;
     padding: 10px;
@@ -108,146 +138,32 @@ header {
 
 #message-input {
     flex: 1;
-    padding: 10px;
+    padding: 12px;
     background: #2a3942;
     border: none;
     color: white;
-    border-radius: 8px;
+    border-radius: 25px;
+    outline: none;
 }
 
-#gif-btn, #send-btn {
+#gif-btn, #send-btn, #mic-btn {
     background: none;
     border: none;
     color: #00a884;
-    font-weight: bold;
+    font-size: 18px;
     cursor: pointer;
 }
-/* Garante que o lugar dos GIFs tenha tamanho e cor */
-#gif-list {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    max-height: 300px; /* Aumentamos para caber os GIFs */
-    overflow-y: auto;
-    margin-top: 10px;
-    min-height: 50px; /* Garante que o espaço exista */
-}
 
-#gif-list img {
-    width: 100%;
-    height: 90px;
-    object-fit: cover;
-    border-radius: 5px;
-}
-/* Garante que o lugar dos GIFs apareça com 3 colunas */
-#gif-list {
-    display: grid !important;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    max-height: 250px; /* Altura máxima com scroll */
-    min-height: 150px; /* Garante que o espaço apareça mesmo vazio */
-    overflow-y: auto;
-    margin-top: 10px;
-    padding: 5px;
-    background: #111b21; /* Um fundo levemente mais escuro para destacar */
-    border-radius: 8px;
-}
-
-#gif-list img {
-    width: 100%;
-    height: 80px;
-    object-fit: cover;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: 0.2s;
-}
-
-#gif-list img:hover {
-    opacity: 0.8;
-    transform: scale(1.05);
-}
-#clear-chat-btn {
-    padding: 5px 10px;
-    border-radius: 5px;
-    border: none;
-    color: white;
-    cursor: pointer;
-    font-weight: bold;
-    opacity: 0.8;
-}
-
-#clear-chat-btn:hover {
-    opacity: 1;
-}
-/* Ajustes para Celular */
+/* 6. Ajustes para Celular */
 @media (max-width: 600px) {
-    #chat-container {
-        width: 100%;
-        height: 100vh;
-    }
+    #chat-container { width: 100%; }
+    
+    #gif-list { grid-template-columns: repeat(2, 1fr); }
 
-    /* Diminui o tamanho do modal de GIF no celular para não cobrir tudo */
-    #gif-modal {
-        bottom: 60px;
-        left: 5px;
-        right: 5px;
-        padding: 8px;
-    }
-
-    #gif-list {
-        grid-template-columns: repeat(2, 1fr); /* 2 colunas no celular fica melhor */
-        max-height: 180px;
-    }
-
-    /* Garante que a área de input sempre fique visível no rodapé */
     .input-area {
-        padding: 8px;
         position: sticky;
         bottom: 0;
-        background: #202c33;
     }
 
-    #message-input {
-        font-size: 16px; /* Evita que o iPhone dê zoom automático ao clicar */
-    }
-}
-.footer-msg {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 5px;
-}
-
-.delete-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 12px;
-    margin-left: 10px;
-    opacity: 0.5;
-    transition: 0.3s;
-}
-
-.delete-btn:hover {
-    opacity: 1;
-    transform: scale(1.2);
-}
-#status-container {
-    margin-top: 5px;
-    background: rgba(0, 0, 0, 0.2);
-    padding: 4px 10px;
-    border-radius: 20px;
-    display: inline-block;
-}
-/* No seu style.css */
-.input-area {
-    display: flex;
-    align-items: center;
-    gap: 10px; /* Dá um espacinho entre o GIF, o Microfone e o Texto */
-    padding: 10px;
-}
-
-#message-input {
-    flex: 1; /* Faz o campo de texto ocupar o resto do espaço */
-    min-width: 0; /* Evita que o input empurre os botões para fora */
+    #message-input { font-size: 16px; }
 }
