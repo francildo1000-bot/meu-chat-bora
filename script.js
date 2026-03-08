@@ -20,9 +20,7 @@ const gifBtn = document.getElementById('gif-btn');
 const gifModal = document.getElementById('gif-modal');
 const gifList = document.getElementById('gif-list');
 const gifSearchInput = document.getElementById('gif-search'); 
-const somNotificacao = document.getElementById('notificacao-som');
 const micBtn = document.getElementById('mic-btn');
-const onlineCountSpan = document.getElementById('online-count');
 
 let usuarioAtual = prompt("Qual é o seu nome?") || "Visitante";
 
@@ -39,7 +37,7 @@ function enviarMensagem(conteudo) {
     });
 }
 
-// 4. Lógica do Microfone (Áudio)
+// 4. Lógica do Microfone (CORRIGIDA)
 let mediaRecorder;
 let audioChunks = [];
 
@@ -60,7 +58,7 @@ if (micBtn) {
                 mediaRecorder.start();
                 micBtn.innerText = "🛑";
                 micBtn.style.color = "red";
-            } catch (err) { alert("Ligue o microfone nas permissões!"); }
+            } catch (err) { alert("Ative o microfone nas permissões!"); }
         } else {
             mediaRecorder.stop();
             micBtn.innerText = "🎤";
@@ -69,19 +67,12 @@ if (micBtn) {
     };
 }
 
-// 5. Exibir Mensagens (Áudio e GIF)
+// 5. Exibir Mensagens (GIF e Áudio)
 database.ref('messages').on('child_added', (snapshot) => {
     const data = snapshot.val();
-    const messageId = snapshot.key;
-    
-    if (data.username !== usuarioAtual && somNotificacao) {
-        somNotificacao.play().catch(() => {});
-    }
-
     const msgDiv = document.createElement('div');
     const souEu = data.username === usuarioAtual;
     msgDiv.className = `message ${souEu ? 'minha-msg' : 'outra-msg'}`;
-    msgDiv.id = `msg-${messageId}`;
 
     let conteudoFinal;
     if (data.text.startsWith('data:audio')) {
@@ -92,35 +83,7 @@ database.ref('messages').on('child_added', (snapshot) => {
         conteudoFinal = `<p>${data.text}</p>`;
     }
 
-    msgDiv.innerHTML = `
-        <span class="user-name">${data.username}</span>
-        ${conteudoFinal}
-        <div class="footer-msg">
-            <span class="time-msg">${data.time || 'Agora'}</span>
-            ${souEu ? `<button class="delete-btn" onclick="database.ref('messages/${messageId}').remove()">🗑️</button>` : ""}
-        </div>
-    `;
+    msgDiv.innerHTML = `<span class="user-name">${data.username}</span>${conteudoFinal}`;
     chatWindow.appendChild(msgDiv);
     chatWindow.scrollTop = chatWindow.scrollHeight;
 });
-
-// 6. Busca de GIFs
-async function buscarGifs(termo = '') {
-    const apiKey = 'Yul3vV8u0jSzwIQSNjVNsu5weoTaAhPB'; 
-    const url = `https://api.giphy.com/v1/gifs/search?api_key=${apiKey}&q=${termo}&limit=12&rating=g`;
-    try {
-        const response = await fetch(url);
-        const { data } = await response.json();
-        gifList.innerHTML = ""; 
-        data.forEach(gif => {
-            const img = document.createElement('img');
-            img.src = gif.images.fixed_height_small.url;
-            img.onclick = () => { enviarMensagem(gif.images.original.url); gifModal.style.display = 'none'; };
-            gifList.appendChild(img);
-        });
-    } catch (e) { console.error(e); }
-}
-
-if (gifBtn) gifBtn.onclick = () => gifModal.style.display = gifModal.style.display === 'block' ? 'none' : 'block';
-if (gifSearchInput) gifSearchInput.oninput = (e) => buscarGifs(e.target.value);
-if (sendBtn) sendBtn.onclick = () => { if (messageInput.value.trim()) { enviarMensagem(messageInput.value); messageInput.value = ""; } };
