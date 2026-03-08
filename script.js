@@ -12,7 +12,7 @@ const firebaseConfig = {
 if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
 const database = firebase.database();
 
-// 2. Seleção de Elementos
+// 2. Seleção de Elementos (SEM DUPLICATAS)
 const messageInput = document.getElementById('message-input');
 const sendBtn = document.getElementById('send-btn');
 const chatWindow = document.getElementById('chat-window');
@@ -26,7 +26,7 @@ const onlineCountSpan = document.getElementById('online-count');
 
 let usuarioAtual = prompt("Qual é o seu nome?") || "Visitante";
 
-// 3. Função de Enviar
+// 3. Função de Envio
 function enviarMensagem(conteudo) {
     if (!conteudo) return;
     const agora = new Date();
@@ -39,7 +39,7 @@ function enviarMensagem(conteudo) {
     });
 }
 
-// 4. Lógica do Microfone (CORRIGIDA)
+// 4. Lógica do Microfone (Áudio)
 let mediaRecorder;
 let audioChunks = [];
 
@@ -60,7 +60,7 @@ if (micBtn) {
                 mediaRecorder.start();
                 micBtn.innerText = "🛑";
                 micBtn.style.color = "red";
-            } catch (err) { alert("Permita o uso do microfone!"); }
+            } catch (err) { alert("Ligue o microfone nas permissões!"); }
         } else {
             mediaRecorder.stop();
             micBtn.innerText = "🎤";
@@ -69,7 +69,7 @@ if (micBtn) {
     };
 }
 
-// 5. Exibir Mensagens (Com Player de Áudio)
+// 5. Exibir Mensagens (Áudio e GIF)
 database.ref('messages').on('child_added', (snapshot) => {
     const data = snapshot.val();
     const messageId = snapshot.key;
@@ -104,11 +104,10 @@ database.ref('messages').on('child_added', (snapshot) => {
     chatWindow.scrollTop = chatWindow.scrollHeight;
 });
 
-// 6. Lógica de GIFs e Envio
+// 6. Busca de GIFs
 async function buscarGifs(termo = '') {
     const apiKey = 'Yul3vV8u0jSzwIQSNjVNsu5weoTaAhPB'; 
-    const endpoint = termo ? 'search' : 'trending';
-    const url = `https://api.giphy.com/v1/gifs/${endpoint}?api_key=${apiKey}&q=${termo}&limit=12&rating=g`;
+    const url = `https://api.giphy.com/v1/gifs/search?api_key=${apiKey}&q=${termo}&limit=12&rating=g`;
     try {
         const response = await fetch(url);
         const { data } = await response.json();
