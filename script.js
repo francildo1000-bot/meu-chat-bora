@@ -125,3 +125,39 @@ database.ref('messages').on('child_added', snapshot => {
 // 8. Botões Extras
 sendBtn.onclick = () => { if(messageInput.value.trim()) { enviar(messageInput.value); messageInput.value = ""; } };
 gifBtn.onclick = () => { gifModal.style.display = gifModal.style.display === 'none' ? 'block' : 'none'; };
+// 9. Lógica de GIFs (CORRIGIDO)
+const gifSearch = document.getElementById('gif-search');
+const gifList = document.getElementById('gif-list');
+const GIPHY_KEY = "dc6zaTOxFJmzC"; // API Key pública para teste
+
+// Função para buscar no Giphy
+gifSearch.oninput = async () => {
+    const termo = gifSearch.value;
+    if (termo.length < 3) return; // Só busca se digitar mais de 2 letras
+
+    try {
+        const response = await fetch(`https://api.giphy.com/v1/gifs/search?api_key=${GIPHY_KEY}&q=${termo}&limit=10&rating=g`);
+        const json = await response.json();
+        
+        gifList.innerHTML = ""; // Limpa a lista antes de mostrar novos
+
+        json.data.forEach(gif => {
+            const img = document.createElement('img');
+            img.src = gif.images.fixed_height_small.url;
+            img.style.width = "45%";
+            img.style.margin = "2%";
+            img.style.cursor = "pointer";
+            img.style.borderRadius = "8px";
+            
+            // Ao clicar no GIF, envia como imagem
+            img.onclick = () => {
+                enviar(gif.images.fixed_height.url);
+                gifModal.style.display = 'none'; // Fecha o modal
+                gifSearch.value = ""; // Limpa a busca
+            };
+            gifList.appendChild(img);
+        });
+    } catch (erro) {
+        console.error("Erro no Giphy:", erro);
+    }
+};
