@@ -63,25 +63,35 @@ imgInput.onchange = (e) => {
 let recorder;
 let chunks = [];
 micBtn.onclick = async () => {
-    if (!recorder || recorder.state === "inactive") {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        recorder = new MediaRecorder(stream);
-        chunks = [];
-        recorder.ondataavailable = e => chunks.push(e.data);
-        recorder.onstop = () => {
-            const blob = new Blob(chunks, { type: 'audio/mpeg' });
-            const reader = new FileReader();
-            reader.readAsDataURL(blob);
-            reader.onloadend = () => enviar(reader.result);
-        };
-        recorder.start();
-        micBtn.innerText = "🛑";
-    } else {
-        recorder.stop();
-        micBtn.innerText = "🎤";
+    try {
+        // Verifica se o navegador suporta a mídia
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            alert("Seu celular bloqueou o acesso ao microfone no APK.");
+            return;
+        }
+
+        if (!recorder || recorder.state === "inactive") {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            recorder = new MediaRecorder(stream);
+            chunks = [];
+            recorder.ondataavailable = e => chunks.push(e.data);
+            recorder.onstop = () => {
+                const blob = new Blob(chunks, { type: 'audio/mpeg' });
+                const reader = new FileReader();
+                reader.readAsDataURL(blob);
+                reader.onloadend = () => enviar(reader.result);
+            };
+            recorder.start();
+            micBtn.innerText = "🛑";
+        } else {
+            recorder.stop();
+            micBtn.innerText = "🎤";
+        }
+    } catch (err) {
+        // Isso vai nos dizer exatamente por que o Android recusou
+        alert("Erro técnico: " + err.name + " - " + err.message);
     }
 };
-
 // 7. Exibir Mensagens com Trava de Segurança (AJUSTADO)
 database.ref('messages').on('child_added', snapshot => {
     const data = snapshot.val();
