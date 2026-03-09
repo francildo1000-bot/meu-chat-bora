@@ -1,13 +1,13 @@
-/* RESET E TRAVA DE TELA */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 html, body {
     width: 100%;
     height: 100%;
-    overflow: hidden;
+    overflow: hidden; /* Trava o deslize lateral e o zoom */
     background-color: #050a10;
     color: white;
-    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-family: 'Segoe UI', Roboto, sans-serif;
+    position: fixed; /* Ajuda a manter o teclado no lugar */
 }
 
 #chat-container {
@@ -17,27 +17,19 @@ html, body {
     width: 100vw;
 }
 
-/* HEADER */
 header {
-    padding: 15px;
+    padding: 10px;
     background: rgba(11, 17, 25, 0.95);
     border-bottom: 2px solid #23a6d5;
     text-align: center;
 }
 
-header h1 {
-    font-size: 20px;
-    color: #23a6d5;
-    letter-spacing: 2px;
-}
-
 #online-status {
     color: #4caf50;
-    font-size: 12px;
-    margin-top: 4px;
+    font-size: 13px;
+    text-shadow: 0 0 5px #4caf50;
 }
 
-/* JANELA DE CHAT */
 #chat-window {
     flex: 1;
     overflow-y: auto;
@@ -45,39 +37,17 @@ header h1 {
     display: flex;
     flex-direction: column;
     gap: 12px;
-    background: #0b1119;
 }
 
-/* MENSAGENS */
-.minha-msg, .outra-msg {
-    max-width: 80%;
-    padding: 10px 14px;
-    border-radius: 15px;
-    font-size: 14px;
-    line-height: 1.4;
-    position: relative;
-}
-
-.minha-msg {
-    align-self: flex-end;
-    background: #005c4b;
-    border-bottom-right-radius: 2px;
-}
-
-.outra-msg {
-    align-self: flex-start;
-    background: #1e2733;
-    border-bottom-left-radius: 2px;
-}
-
-/* ÁREA DE ENTRADA (Onde o avião estava fugindo) */
+/* ÁREA DE ENTRADA BLINDADA */
 .input-area {
     display: flex;
     align-items: center;
     background: #0b1119;
-    padding: 10px 15px;
-    gap: 10px;
+    padding: 10px;
+    gap: 8px;
     border-top: 1px solid #1e2733;
+    position: relative; /* Importante para a bandeja */
 }
 
 #message-input {
@@ -87,39 +57,23 @@ header h1 {
     color: white;
     padding: 12px 15px;
     border-radius: 25px;
-    font-size: 16px;
+    font-size: 16px !important; /* MATA O ZOOM AUTOMÁTICO */
     outline: none;
+    min-width: 0; /* Garante que ele não empurre o avião */
 }
 
-/* BOTÕES */
-button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.1s;
-}
-
-button:active { transform: scale(0.9); }
-
-#send-btn { color: #23a6d5; font-size: 24px; }
-#toggle-menu { color: #858e99; }
-#mic-btn { color: #858e99; }
-
-/* MENU DE ANEXOS GAVETA */
 #attachment-menu {
-    display: none; /* Controlado pelo JS */
+    display: none; 
     position: absolute;
-    bottom: 70px;
-    left: 15px;
+    bottom: 65px;
+    left: 10px;
     background: #1a1a1a;
-    border: 1px solid #23a6d5;
+    border: 2px solid #23a6d5;
     border-radius: 12px;
-    padding: 10px;
+    padding: 12px;
     flex-direction: column;
-    gap: 10px;
+    gap: 15px;
     z-index: 100;
 }
+
+#send-btn { color: #23a6d5; font-size: 26px; }
