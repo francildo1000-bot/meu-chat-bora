@@ -1,15 +1,18 @@
 {
-  "name": "Distrito Zero",
+  "name": "Distrito Zero Chat",
   "short_name": "Distrito 0",
+  "description": "Chat em tempo real do Distrito Zero",
   "start_url": "index.html",
   "display": "standalone",
-  "background_color": "#000000",
+  "background_color": "#0f172a",
   "theme_color": "#000000",
+  "orientation": "portrait",
   "icons": [
     {
-      "src": "iconeee.png",
-      "sizes": "256x256",
-      "type": "image/png"
+      "src": "https://cdn-icons-png.flaticon.com/512/626/626610.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }

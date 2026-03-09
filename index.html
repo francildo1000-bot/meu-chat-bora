@@ -6,19 +6,20 @@
     <title>Distrito Zero - Chat</title>
     
     <meta name="theme-color" content="#000000">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="manifest" href="manifest.json">
     
     <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/626/626610.png">
     <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&display=swap" rel="stylesheet">
+    
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="chat-container">   
         <header>
             <h2>Distrito Zero</h2>
-            <div id="user-info">
+            <div id="user-info" title="Clique para mudar seu vulgo">
                 <span id="display-name"></span> ✏️
             </div>
         </header>
@@ -31,29 +32,34 @@
         <div id="chat-window"></div>
 
         <div id="input-area">
-            <button id="gif-btn">🎬</button>
-            <button id="img-btn">🖼️</button>
+            <button id="gif-btn" title="Enviar GIF">🎬</button>
+            <button id="img-btn" title="Enviar Imagem">🖼️</button>
             <input type="file" id="img-input" style="display:none" accept="image/*">
-            <input type="text" id="message-input" placeholder="Digite uma mensagem...">
-            <button id="mic-btn">🎤</button>
-            <button id="send-btn">✈️</button>
+            
+            <input type="text" id="message-input" placeholder="Digite uma mensagem..." autocomplete="off">
+            
+            <button id="mic-btn" title="Gravar Áudio">🎤</button>
+            <button id="send-btn" title="Enviar">✈️</button>
         </div>
     </div>
 
     <div id="gif-modal" style="display:none;">
-        <input type="text" id="gif-search" placeholder="Procurar GIF...">
+        <input type="text" id="gif-search" placeholder="Procurar GIF no Giphy...">
         <div id="gif-list"></div>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
     <script src="script.js"></script>
 
     <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js')
-            .then(() => console.log("Distrito Zero pronto!"))
-            .catch(err => console.log("Erro no SW:", err));
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                .then(reg => console.log("Distrito Zero: PWA registrado com sucesso!", reg.scope))
+                .catch(err => console.error("Erro ao registrar Service Worker:", err));
+            });
         }
     </script>
 </body>

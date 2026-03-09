@@ -17,9 +17,9 @@ let messageInput, sendBtn, chatWindow, micBtn, imgBtn, imgInput, gifBtn, gifModa
 const ADMIN_NAME = "Admin-Hells~"; 
 let usuario = localStorage.getItem('dz_username') || "Visitante";
 
-// 3. Inicialização ao Carregar a Página
+// 3. Inicialização Segura
 document.addEventListener('DOMContentLoaded', () => {
-    // Vincular elementos
+    // Vincular elementos do HTML
     messageInput = document.getElementById('message-input');
     sendBtn = document.getElementById('send-btn');
     chatWindow = document.getElementById('chat-window');
@@ -32,30 +32,30 @@ document.addEventListener('DOMContentLoaded', () => {
     userInfo = document.getElementById('user-info');
     countNumber = document.getElementById('count-number');
 
-    // Usuário Novo
+    // Boas-vindas para novos usuários
     if (!localStorage.getItem('dz_username')) {
         const novo = prompt("Qual o seu vulgo no Distrito Zero?");
-        if(novo) {
-            usuario = novo;
+        if(novo && novo.trim() !== "") {
+            usuario = novo.trim();
             localStorage.setItem('dz_username', usuario);
         }
     }
 
     if (displayName) displayName.innerText = usuario;
     
-    // Troca de Nome
+    // Sistema de troca de vulgo
     if (userInfo) {
         userInfo.onclick = () => {
             const novoNome = prompt("Novo vulgo:", usuario);
-            if (novoNome) {
-                localStorage.setItem('dz_username', novoNome);
+            if (novoNome && novoNome.trim() !== "") {
+                localStorage.setItem('dz_username', novoNome.trim());
                 location.reload(); 
             }
         };
     }
 
-    // --- LÓGICA DE PRESENÇA ---
-    const sanitizado = usuario.replace(/[.#$/[\]]/g, '_'); // Evita erro no Firebase
+    // --- LÓGICA DE PRESENÇA (ONLINE) ---
+    const sanitizado = usuario.replace(/[.#$/[\]]/g, '_'); 
     const myPresenceRef = database.ref('presence/' + sanitizado);
     const totalPresenceRef = database.ref('presence');
 
@@ -68,34 +68,41 @@ document.addEventListener('DOMContentLoaded', () => {
 
     totalPresenceRef.on('value', (snapshot) => {
         const total = snapshot.numChildren() || 0;
-        if (countNumber) countNumber.innerText = total;
+        if (countNumber) {
+            countNumber.innerText = total;
+            // Força a exibição caso o CSS esteja ocultando
+            countNumber.parentElement.style.display = 'flex';
+        }
     });
 
-    // Iniciar Chat
     iniciarApp();
 });
 
-// 4. Funções Principais
+// 4. Funções de Comunicação
 function enviar(conteudo) {
     if (!conteudo) return;
     database.ref('messages').push({
         user: usuario,
         msg: conteudo,
-        time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+        time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+        timestamp: firebase.database.ServerValue.TIMESTAMP
     });
 }
 
 window.apagarMensagem = (id) => {
-    if (confirm("Apagar mensagem?")) database.ref('messages/' + id).remove();
+    if (confirm("Apagar esta mensagem permanentemente?")) {
+        database.ref('messages/' + id).remove();
+    }
 };
 
 function iniciarApp() {
-    // Escutas do Firebase
+    // Escutas do Firebase para deletar e adicionar mensagens
     database.ref('messages').on('child_removed', s => {
-        const el = document.getElementById(s.key); if(el) el.remove();
+        const el = document.getElementById(s.key); 
+        if(el) el.remove();
     });
 
-    database.ref('messages').on('child_added', snapshot => {
+    database.ref('messages').limitToLast(50).on('child_added', snapshot => {
         const data = snapshot.val();
         const id = snapshot.key;
         if (!data || !data.msg) return;
@@ -106,24 +113,45 @@ function iniciarApp() {
         div.className = `message ${souEu ? 'minha-msg' : 'outra-msg'}`;
 
         const podeApagar = souEu || (usuario === ADMIN_NAME);
-        const btnApagar = podeApagar ? `<button onclick="apagarMensagem('${id}')" class="btn-apagar" style="color:red; font-size:12px; float:right;">🗑️</button>` : "";
+        const btnApagar = podeApagar ? `<button onclick="apagarMensagem('${id}')" class="btn-apagar" style="color:#ff4d4d; float:right; background:none; border:none; cursor:pointer;">🗑️</button>` : "";
 
         let htmlMsg;
         if (data.msg.startsWith('data:audio')) {
-            htmlMsg = `<audio controls src="${data.msg}" style="width:180px;"></audio>`;
+            htmlMsg = `<audio controls src="${data.msg}" style="width:100%; max-width:200px; height:35px;"></audio>`;
         } else if (data.msg.startsWith('data:image') || data.msg.includes('giphy.com')) {
-            htmlMsg = `<img src="${data.msg}" style="width:100%; border-radius:10px;">`;
+            htmlMsg = `<img src="${data.msg}" style="width:100%; border-radius:10px; margin-top:5px; cursor:pointer;" onclick="window.open(this.src)">`;
         } else {
-            htmlMsg = `<p style="margin:0">${data.msg}</p>`;
+            htmlMsg = `<p style="margin:5px 0 0 0; line-height:1.4;">${data.msg}</p>`;
         }
 
-        div.innerHTML = `<div><small><b>${data.user}</b></small>${btnApagar}</div>${htmlMsg}`;
+        div.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <small><b>${data.user}</b></small>
+                ${btnApagar}
+            </div>
+            ${htmlMsg}
+            <div style="text-align:right; font-size:10px; opacity:0.6; margin-top:5px;">${data.time || ''}</div>
+        `;
+
         chatWindow.appendChild(div);
-        chatWindow.scrollTop = chatWindow.scrollHeight;
+        chatWindow.scrollTo({ top: chatWindow.scrollHeight, behavior: 'smooth' });
     });
 
-    // Cliques
-    sendBtn.onclick = () => { if(messageInput.value.trim()){ enviar(messageInput.value); messageInput.value=""; } };
+    // Eventos de Clique e Teclado
+    sendBtn.onclick = () => { 
+        if(messageInput.value.trim()){ 
+            enviar(messageInput.value); 
+            messageInput.value=""; 
+        } 
+    };
+
+    messageInput.onkeypress = (e) => {
+        if(e.key === 'Enter' && messageInput.value.trim()){
+            enviar(messageInput.value);
+            messageInput.value = "";
+        }
+    };
+
     imgBtn.onclick = () => imgInput.click();
     imgInput.onchange = (e) => {
         const file = e.target.files[0];
@@ -134,7 +162,7 @@ function iniciarApp() {
         }
     };
 
-    // Microfone
+    // Lógica do Microfone (Gravador)
     let recorder, chunks = [];
     micBtn.onclick = async () => {
         try {
@@ -149,9 +177,15 @@ function iniciarApp() {
                     reader.readAsDataURL(blob);
                     reader.onloadend = () => enviar(reader.result);
                 };
-                recorder.start(); micBtn.innerText = "🛑";
-            } else { recorder.stop(); micBtn.innerText = "🎤"; }
-        } catch (e) { alert("Erro de áudio."); }
+                recorder.start(); 
+                micBtn.innerText = "🛑";
+                micBtn.style.color = "red";
+            } else { 
+                recorder.stop(); 
+                micBtn.innerText = "🎤"; 
+                micBtn.style.color = "";
+            }
+        } catch (e) { alert("Permissão de microfone negada ou erro de hardware."); }
     };
     
     configurarGifs();
@@ -160,19 +194,29 @@ function iniciarApp() {
 function configurarGifs() {
     const GIPHY_KEY = "dc6zaTOxFJmzC"; 
     const gifSearch = document.getElementById('gif-search');
-    gifBtn.onclick = () => gifModal.style.display = gifModal.style.display === 'none' ? 'block' : 'none';
+    gifBtn.onclick = () => {
+        gifModal.style.display = gifModal.style.display === 'none' ? 'block' : 'none';
+        if(gifModal.style.display === 'block') gifSearch.focus();
+    };
     
     gifSearch.oninput = async () => {
         if (gifSearch.value.length < 3) return;
-        const resp = await fetch(`https://api.giphy.com/v1/gifs/search?api_key=${GIPHY_KEY}&q=${gifSearch.value}&limit=10`);
-        const json = await resp.json();
-        const list = document.getElementById('gif-list');
-        list.innerHTML = "";
-        json.data.forEach(gif => {
-            const img = document.createElement('img');
-            img.src = gif.images.fixed_height_small.url;
-            img.onclick = () => { enviar(gif.images.fixed_height.url); gifModal.style.display='none'; };
-            list.appendChild(img);
-        });
+        try {
+            const resp = await fetch(`https://api.giphy.com/v1/gifs/search?api_key=${GIPHY_KEY}&q=${gifSearch.value}&limit=12&rating=g`);
+            const json = await resp.json();
+            const list = document.getElementById('gif-list');
+            list.innerHTML = "";
+            json.data.forEach(gif => {
+                const img = document.createElement('img');
+                img.src = gif.images.fixed_height_small.url;
+                img.style.cssText = "width:46%; margin:2%; cursor:pointer; border-radius:8px;";
+                img.onclick = () => { 
+                    enviar(gif.images.fixed_height.url); 
+                    gifModal.style.display='none'; 
+                    gifSearch.value = "";
+                };
+                list.appendChild(img);
+            });
+        } catch (err) { console.error("Erro Giphy:", err); }
     };
 }
