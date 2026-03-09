@@ -22,9 +22,33 @@ const imgInput = document.getElementById('img-input');
 const gifBtn = document.getElementById('gif-btn');
 const gifModal = document.getElementById('gif-modal');
 
-// 3. Controle de Usuário e ADMIN
+// --- NOVO: Elementos do Cabeçalho ---
+const displayName = document.getElementById('display-name');
+const userInfo = document.getElementById('user-info');
+
+// 3. Controle de Usuário e ADMIN com Memória (localStorage)
 const ADMIN_NAME = "Admin-Hells~"; 
-let usuario = prompt("Como quer ser chamado?") || "Visitante";
+let usuario = localStorage.getItem('dz_username');
+
+if (!usuario) {
+    usuario = prompt("Bem-vindo ao Distrito Zero! Qual o seu vulgo?") || "Visitante";
+    if (usuario !== "Visitante") {
+        localStorage.setItem('dz_username', usuario);
+    }
+}
+
+// Exibe o nome no topo e configura a troca
+if (displayName) displayName.innerText = usuario;
+if (userInfo) {
+    userInfo.onclick = () => {
+        const novoNome = prompt("Qual será seu novo vulgo?", usuario);
+        if (novoNome && novoNome.trim() !== "") {
+            localStorage.setItem('dz_username', novoNome);
+            location.reload(); 
+        }
+    };
+}
+
 const eAdmin = (usuario === ADMIN_NAME);
 
 // 4. Função Global para Apagar
@@ -64,9 +88,8 @@ let recorder;
 let chunks = [];
 micBtn.onclick = async () => {
     try {
-        // Verifica se o navegador suporta a mídia
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            alert("Seu celular bloqueou o acesso ao microfone no APK.");
+            alert("Seu celular bloqueou o acesso ao microfone. Tente usar o navegador Chrome.");
             return;
         }
 
@@ -88,16 +111,15 @@ micBtn.onclick = async () => {
             micBtn.innerText = "🎤";
         }
     } catch (err) {
-        // Isso vai nos dizer exatamente por que o Android recusou
         alert("Erro técnico: " + err.name + " - " + err.message);
     }
 };
-// 7. Exibir Mensagens com Trava de Segurança (AJUSTADO)
+
+// 7. Exibir Mensagens
 database.ref('messages').on('child_added', snapshot => {
     const data = snapshot.val();
     const id = snapshot.key;
 
-    // TRAVA DE SEGURANÇA: Evita erro de 'undefined' se a msg for nula
     if (!data || !data.msg) return;
 
     const div = document.createElement('div');
@@ -110,10 +132,9 @@ database.ref('messages').on('child_added', snapshot => {
     const btnApagar = podeApagar ? `<button onclick="apagarMensagem('${id}')" style="background:none; border:none; color:red; cursor:pointer; float:right; font-size:14px;">🗑️</button>` : "";
 
     let conteudoHtml;
-    // Verificação segura do conteúdo da mensagem
     if (data.msg.startsWith('data:audio')) {
         conteudoHtml = `<audio controls src="${data.msg}" style="width:200px; height:35px;"></audio>`;
-    } else if (data.msg.startsWith('data:image')) {
+    } else if (data.msg.startsWith('data:image') || data.msg.includes('giphy.com')) {
         conteudoHtml = `<img src="${data.msg}" style="width:100%; max-width:250px; border-radius:10px; cursor:pointer;" onclick="window.open(this.src)">`;
     } else {
         conteudoHtml = `<p style="margin:0">${data.msg}</p>`;
@@ -135,21 +156,20 @@ database.ref('messages').on('child_added', snapshot => {
 // 8. Botões Extras
 sendBtn.onclick = () => { if(messageInput.value.trim()) { enviar(messageInput.value); messageInput.value = ""; } };
 gifBtn.onclick = () => { gifModal.style.display = gifModal.style.display === 'none' ? 'block' : 'none'; };
-// 9. Lógica de GIFs (CORRIGIDO)
+
+// 9. Lógica de GIFs
 const gifSearch = document.getElementById('gif-search');
 const gifList = document.getElementById('gif-list');
-const GIPHY_KEY = "dc6zaTOxFJmzC"; // API Key pública para teste
+const GIPHY_KEY = "dc6zaTOxFJmzC"; 
 
-// Função para buscar no Giphy
 gifSearch.oninput = async () => {
     const termo = gifSearch.value;
-    if (termo.length < 3) return; // Só busca se digitar mais de 2 letras
+    if (termo.length < 3) return; 
 
     try {
         const response = await fetch(`https://api.giphy.com/v1/gifs/search?api_key=${GIPHY_KEY}&q=${termo}&limit=10&rating=g`);
         const json = await response.json();
-        
-        gifList.innerHTML = ""; // Limpa a lista antes de mostrar novos
+        gifList.innerHTML = ""; 
 
         json.data.forEach(gif => {
             const img = document.createElement('img');
@@ -159,11 +179,10 @@ gifSearch.oninput = async () => {
             img.style.cursor = "pointer";
             img.style.borderRadius = "8px";
             
-            // Ao clicar no GIF, envia como imagem
             img.onclick = () => {
                 enviar(gif.images.fixed_height.url);
-                gifModal.style.display = 'none'; // Fecha o modal
-                gifSearch.value = ""; // Limpa a busca
+                gifModal.style.display = 'none'; 
+                gifSearch.value = ""; 
             };
             gifList.appendChild(img);
         });
