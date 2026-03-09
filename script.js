@@ -1,4 +1,4 @@
-// 1. Configurações do Firebase (Suas chaves oficiais)
+// 1. Configurações do Firebase
 const firebaseConfig = {
     apiKey: "AIzaSyAT3yJEb0VYpz-KEydMJ5Ug4rvPnTbPcf0",
     authDomain: "meuchatbora.firebaseapp.com",
@@ -27,20 +27,19 @@ const ADMIN_NAME = "Admin-Hells~";
 let usuario = prompt("Como quer ser chamado?") || "Visitante";
 const eAdmin = (usuario === ADMIN_NAME);
 
-// 4. Função Global para Apagar (Individual ou Admin)
+// 4. Função Global para Apagar
 window.apagarMensagem = (id) => {
     if (confirm("Deseja apagar esta mensagem permanentemente?")) {
         database.ref('messages/' + id).remove();
     }
 };
 
-// Remove da tela de todos quando o Firebase deletar
 database.ref('messages').on('child_removed', snapshot => {
     const msgDiv = document.getElementById(snapshot.key);
     if (msgDiv) msgDiv.remove();
 });
 
-// 5. Função para Enviar ao Banco
+// 5. Função para Enviar
 function enviar(conteudo) {
     if (!conteudo) return;
     database.ref('messages').push({
@@ -83,21 +82,25 @@ micBtn.onclick = async () => {
     }
 };
 
-// 7. Exibir Mensagens com Lixeira Individual
+// 7. Exibir Mensagens com Trava de Segurança (AJUSTADO)
 database.ref('messages').on('child_added', snapshot => {
     const data = snapshot.val();
     const id = snapshot.key;
+
+    // TRAVA DE SEGURANÇA: Evita erro de 'undefined' se a msg for nula
+    if (!data || !data.msg) return;
+
     const div = document.createElement('div');
     const souEu = data.user === usuario;
     
     div.id = id; 
     div.className = `message ${souEu ? 'minha-msg' : 'outra-msg'}`;
 
-    // REGRA: Lixeira aparece se (EU mandei) OU (EU sou Admin)
     const podeApagar = souEu || eAdmin;
     const btnApagar = podeApagar ? `<button onclick="apagarMensagem('${id}')" style="background:none; border:none; color:red; cursor:pointer; float:right; font-size:14px;">🗑️</button>` : "";
 
     let conteudoHtml;
+    // Verificação segura do conteúdo da mensagem
     if (data.msg.startsWith('data:audio')) {
         conteudoHtml = `<audio controls src="${data.msg}" style="width:200px; height:35px;"></audio>`;
     } else if (data.msg.startsWith('data:image')) {
@@ -112,7 +115,7 @@ database.ref('messages').on('child_added', snapshot => {
             ${btnApagar}
         </div>
         ${conteudoHtml}
-        <div style="text-align:right; font-size:10px; margin-top:5px; opacity:0.7;">${data.time}</div>
+        <div style="text-align:right; font-size:10px; margin-top:5px; opacity:0.7;">${data.time || ''}</div>
     `;
     
     chatWindow.appendChild(div);
@@ -120,5 +123,5 @@ database.ref('messages').on('child_added', snapshot => {
 });
 
 // 8. Botões Extras
-sendBtn.onclick = () => { enviar(messageInput.value); messageInput.value = ""; };
+sendBtn.onclick = () => { if(messageInput.value.trim()) { enviar(messageInput.value); messageInput.value = ""; } };
 gifBtn.onclick = () => { gifModal.style.display = gifModal.style.display === 'none' ? 'block' : 'none'; };
