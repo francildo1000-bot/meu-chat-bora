@@ -1,175 +1,26 @@
-/* 1. Estrutura e Reset */
-body { 
-    font-family: 'Segoe UI', sans-serif; 
-    background: #0f172a; 
-    margin: 0; 
-    display: flex; 
-    justify-content: center; 
-    height: 100vh;
-    overflow: hidden; /* Evita rolagem dupla no mobile */
+/* Trava as paredes do App */
+html, body {
+    overflow-x: hidden;
+    width: 100%;
+    position: relative;
+    margin: 0;
+    padding: 0;
 }
 
-#chat-container { 
-    width: 100%; 
-    max-width: 500px; 
-    height: 100vh; 
-    background: #1e293b; 
-    display: flex; 
-    flex-direction: column; 
-    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+/* Evita o zoom automático no celular */
+#message-input {
+    font-size: 16px !important;
+    flex: 1;
+    min-width: 0; /* Garante que o input não empurre o avião */
 }
 
-/* 2. Cabeçalho Graffiti */
-header { 
-    background: #0f172a; 
-    color: #38bdf8; 
-    padding: 15px; 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center;
-    border-bottom: 2px solid #38bdf8;
-    font-family: 'Permanent Marker', cursive;
-    flex-shrink: 0;
-}
-
-header h2 { margin: 0; font-size: 24px; text-transform: uppercase; transform: rotate(-1deg); }
-
-/* 3. BARRA ONLINE (Corrigida) */
-#online-bar {
-    background: #0a0a0a;
-    color: #00ff00;
-    font-size: 11px;
-    padding: 6px 15px;
+/* Garante que a barra de baixo fique no lugar */
+.input-area {
     display: flex;
     align-items: center;
-    gap: 8px;
-    border-bottom: 1px solid #1a1a1a;
-    flex-shrink: 0; /* Essencial para o contador não sumir */
-    min-height: 25px;
-}
-
-.dot {
-    height: 8px; width: 8px;
-    background-color: #00ff00;
-    border-radius: 50%;
-    box-shadow: 0 0 5px #00ff00;
-    animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-    0% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.4; transform: scale(1.2); }
-    100% { opacity: 1; transform: scale(1); }
-}
-
-/* 4. Janela de Chat */
-#chat-window { 
-    flex: 1; 
-    overflow-y: auto; 
-    padding: 15px; 
-    display: flex; 
-    flex-direction: column; 
-    gap: 12px; 
-    background: #0f172a;
-    scroll-behavior: smooth;
-}
-
-/* 5. Mensagens e Balões */
-.message { 
-    padding: 10px 15px; 
-    border-radius: 18px; 
-    max-width: 80%; 
-    font-size: 14px; 
-    color: #f1f5f9; 
-    position: relative; 
-    word-wrap: break-word; 
-    line-height: 1.4;
-}
-
-.minha-msg { 
-    align-self: flex-end; 
-    background: #0369a1; 
-    border: 1px solid #38bdf8;
-    border-bottom-right-radius: 2px; 
-}
-
-.outra-msg { 
-    align-self: flex-start; 
-    background: #334155; 
-    border-bottom-left-radius: 2px; 
-}
-
-/* 6. Botão Apagar (Lixeira) */
-.btn-apagar {
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 12px;
-    transition: 0.2s;
-    padding: 2px;
-}
-
-.btn-apagar:hover { transform: scale(1.2); filter: brightness(1.5); }
-
-/* 7. Área de Entrada */
-#input-area { 
-    padding: 15px; 
-    display: flex; 
-    gap: 10px; 
-    background: #0f172a; 
-    border-top: 1px solid #334155; 
-    align-items: center; 
-    flex-shrink: 0; 
-}
-
-#message-input { 
-    flex: 1; 
-    padding: 12px 18px; 
-    border-radius: 25px; 
-    border: 1px solid #334155; 
-    background: #1e293b; 
-    color: white; 
-    outline: none; 
-    font-size: 14px;
-}
-
-#message-input:focus { border-color: #38bdf8; }
-
-button { cursor: pointer; font-size: 22px; transition: 0.2s; border: none; background: none; padding: 5px; }
-button:hover { transform: scale(1.1); }
-
-/* 8. GIF Modal */
-#gif-modal { 
-    position: fixed; 
-    bottom: 85px; 
-    left: 50%; 
-    transform: translateX(-50%); 
-    background: #1e293b; 
-    width: 90%; 
-    max-width: 350px; 
-    height: 350px; 
-    overflow-y: auto; 
-    border-radius: 15px; 
-    border: 1px solid #38bdf8; 
-    z-index: 100; 
-    padding: 15px; 
-    box-shadow: 0 -5px 25px rgba(0,0,0,0.5);
-}
-
-#gif-search {
     width: 100%;
-    padding: 10px;
-    border-radius: 10px;
-    border: 1px solid #334155;
-    background: #0f172a;
-    color: white;
-    margin-bottom: 10px;
+    max-width: 100vw;
     box-sizing: border-box;
-}
-
-#gif-list img { 
-    width: 46%; 
-    margin: 2%; 
-    border-radius: 8px; 
-    cursor: pointer; 
+    padding: 5px 10px;
+    gap: 8px;
 }
