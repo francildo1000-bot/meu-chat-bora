@@ -21,12 +21,11 @@ const imgBtn = document.getElementById('img-btn');
 const imgInput = document.getElementById('img-input');
 const gifBtn = document.getElementById('gif-btn');
 const gifModal = document.getElementById('gif-modal');
-
-// --- NOVO: Elementos do Cabeçalho ---
 const displayName = document.getElementById('display-name');
 const userInfo = document.getElementById('user-info');
+const countNumber = document.getElementById('count-number'); // Elemento do contador
 
-// 3. Controle de Usuário e ADMIN com Memória (localStorage)
+// 3. Controle de Usuário e ADMIN
 const ADMIN_NAME = "Admin-Hells~"; 
 let usuario = localStorage.getItem('dz_username');
 
@@ -37,7 +36,6 @@ if (!usuario) {
     }
 }
 
-// Exibe o nome no topo e configura a troca
 if (displayName) displayName.innerText = usuario;
 if (userInfo) {
     userInfo.onclick = () => {
@@ -50,6 +48,25 @@ if (userInfo) {
 }
 
 const eAdmin = (usuario === ADMIN_NAME);
+
+// --- NOVO: Lógica de Presença (Online/Offline) ---
+const myPresenceRef = database.ref('presence/' + usuario);
+const totalPresenceRef = database.ref('presence');
+
+database.ref('.info/connected').on('value', (snapshot) => {
+    if (snapshot.val() === true) {
+        // Remove do banco quando o usuário fechar o app/navegador
+        myPresenceRef.onDisconnect().remove();
+        // Marca como online
+        myPresenceRef.set(true);
+    }
+});
+
+// Atualiza o contador na tela
+totalPresenceRef.on('value', (snapshot) => {
+    const total = snapshot.numChildren() || 0;
+    if (countNumber) countNumber.innerText = total;
+});
 
 // 4. Função Global para Apagar
 window.apagarMensagem = (id) => {
@@ -89,7 +106,7 @@ let chunks = [];
 micBtn.onclick = async () => {
     try {
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            alert("Seu celular bloqueou o acesso ao microfone. Tente usar o navegador Chrome.");
+            alert("Seu celular bloqueou o acesso ao microfone.");
             return;
         }
 
