@@ -11,25 +11,25 @@
     <link rel="manifest" href="manifest.json">
     
     <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/626/626610.png">
-    
     <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="chat-container">   
-        <header style="display: flex; justify-content: space-between; align-items: center; padding: 10px 15px;">
-            <h2 style="margin: 0;">Distrito Zero</h2>
-            <div id="user-info" style="cursor: pointer; font-size: 14px; color: #00f2ff; font-family: 'Permanent Marker', cursive;">
+        <header>
+            <h2>Distrito Zero</h2>
+            <div id="user-info">
                 <span id="display-name"></span> ✏️
             </div>
         </header>
 
-        <div id="online-bar" style="background: #0a0a0a; color: #00ff00; font-size: 11px; padding: 5px 15px; border-bottom: 1px solid #1a1a1a; display: flex; align-items: center; gap: 8px;">
-            <span class="dot" style="height: 8px; width: 8px; background-color: #00ff00; border-radius: 50%; display: inline-block; box-shadow: 0 0 5px #00ff00;"></span>
+        <div id="online-bar">
+            <span class="dot"></span>
             <span id="count-number">0</span> usuários online
         </div>
 
         <div id="chat-window"></div>
+
         <div id="input-area">
             <button id="gif-btn">🎬</button>
             <button id="img-btn">🖼️</button>
@@ -52,7 +52,7 @@
     <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js')
-            .then(() => console.log("Distrito Zero pronto para instalar!"))
+            .then(() => console.log("Distrito Zero pronto!"))
             .catch(err => console.log("Erro no SW:", err));
         }
     </script>
