@@ -1,19 +1,46 @@
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Distrito Zero</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+</head>
+<body>
 
-<div id="online-status" style="text-align: center; color: #00ff00; font-size: 14px; margin-bottom: 10px; font-family: sans-serif;">
-    ● <span id="count-number">0</span> usuários online
-</div>
+    <div id="chat-container">
+        <header>
+            <h1>DISTRITO ZERO</h1>
+            <div id="online-status">
+                ● <span id="count-number">0</span> online
+            </div>
+        </header>
 
-<div class="input-area">
-    <button id="toggle-menu" type="button" style="background:none; border:none; font-size:24px;">➕</button>
-    
-    <div id="attachment-menu" style="display: none; position: absolute; bottom: 70px; left: 10px; background: #111; border: 1px solid #00f2ff; border-radius: 10px; padding: 10px; flex-direction: column; gap: 15px; z-index: 100;">
-        <button id="gif-btn" style="background:none; border:none; font-size:20px;">🎬 GIF</button>
-        <button id="img-btn" style="background:none; border:none; font-size:20px;">🖼️ Foto</button>
+        <div id="chat-window"></div>
+
+        <div class="input-area">
+            <button id="toggle-menu" type="button">➕</button>
+            
+            <div id="attachment-menu">
+                <button id="gif-btn" type="button">🎬 GIF</button>
+                <button id="img-btn" type="button">🖼️ Foto</button>
+            </div>
+
+            <input type="text" id="message-input" placeholder="Digite uma mensagem..." autocomplete="off">
+            <button id="mic-btn">🎤</button>
+            <button id="send-btn">✈️</button>
+        </div>
     </div>
 
-    <input type="text" id="message-input" placeholder="Digite uma mensagem..." autocomplete="off">
-    <button id="mic-btn">🎤</button>
-    <button id="send-btn">✈️</button>
-</div>
-<input type="file" id="img-input" accept="image/*" style="display:none;">
+    <input type="file" id="img-input" accept="image/*" style="display:none;">
+
+    <div id="gif-modal" style="display:none;">
+        <input type="text" id="gif-search" placeholder="Pesquisar GIF...">
+        <div id="gif-list"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
