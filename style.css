@@ -17,18 +17,31 @@ body {
     box-shadow: 0 0 20px rgba(0,0,0,0.5);
 }
 
-/* 2. Cabeçalho */
+/* 2. Cabeçalho ESTILO GRAFFITI (ATUALIZADO) */
 header { 
     background: #0f172a; 
     color: #38bdf8; /* Azul Neon */
-    padding: 15px; 
+    padding: 20px 15px; 
     text-align: center; 
-    border-bottom: 2px solid #38bdf8;
+    border-bottom: 3px solid #38bdf8;
+    
+    /* Fontes e Efeitos Urbanos */
+    font-family: 'Permanent Marker', cursive; /* Requer link no HTML */
+    font-size: 28px;
     text-transform: uppercase;
-    letter-spacing: 2px;
+    letter-spacing: 1px;
+    transform: rotate(-2deg); /* Inclinação estilo arte de rua */
+    
+    /* Efeito de Brilho e Sombra "Bomb" */
+    text-shadow: 
+        3px 3px 0px #000, 
+        0 0 10px #38bdf8, 
+        0 0 20px #38bdf8;
 }
 
-/* 3. Janela de Mensagens */
+header h2 { margin: 0; }
+
+/* 3. Janela de Mensagens com Efeito Névoa */
 #chat-window { 
     flex: 1; 
     overflow-y: auto; 
@@ -36,9 +49,15 @@ header {
     display: flex; 
     flex-direction: column; 
     gap: 10px; 
+    
+    /* EFEITO DE FUMAÇA E PROFUNDIDADE */
     background: #0f172a;
-    background-image: radial-gradient(#1e293b 1px, transparent 1px);
-    background-size: 20px 20px; /* Efeito de grade discreta */
+    background-image: 
+        radial-gradient(circle at 20% 30%, rgba(56, 189, 248, 0.05) 0%, transparent 40%), 
+        radial-gradient(circle at 80% 70%, rgba(3, 105, 161, 0.1) 0%, transparent 40%),
+        radial-gradient(#1e293b 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 20px 20px;
+    background-attachment: fixed;
 }
 
 /* 4. Estilo das Bolhas (Minhas vs Outras) */
